@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://tswsb2gjtr-pixel.github.io/aurorafin-website/sitemap.xml

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora Fin — Умный учет финансов</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f4ff; color: #1a1a2e; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 24px; font-weight: 700; color: #1a1a2e; }
+        .logo span { color: #4a6cf7; }
+        nav a { margin-left: 30px; text-decoration: none; color: #4a4a6a; font-weight: 500; transition: 0.2s; }
+        nav a:hover { color: #4a6cf7; }
+        .hero { display: flex; align-items: center; justify-content: center; padding: 80px 60px; max-width: 1200px; margin: 0 auto; text-align: center; }
+        .hero-text h1 { font-size: 48px; font-weight: 800; line-height: 1.2; margin-bottom: 20px; }
+        .hero-text p { font-size: 18px; color: #5a5a7a; max-width: 600px; margin: 0 auto 20px; }
+        #features { padding: 80px 60px; background: white; text-align: center; }
+        #features h2 { font-size: 36px; margin-bottom: 50px; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .feature { background: #f8faff; padding: 30px; border-radius: 16px; transition: 0.3s; }
+        .feature:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(74,108,247,0.1); }
+        .feature span { font-size: 40px; }
+        .feature h3 { margin: 16px 0 8px; font-size: 20px; }
+        .feature p { color: #5a5a7a; font-size: 15px; line-height: 1.5; }
+        #about { padding: 80px 60px; text-align: center; max-width: 800px; margin: 0 auto; }
+        #about h2 { font-size: 36px; margin-bottom: 30px; }
+        #about p { font-size: 18px; color: #5a5a7a; line-height: 1.8; }
+        #contact { padding: 60px 60px; text-align: center; background: white; }
+        #contact h2 { font-size: 36px; margin-bottom: 30px; }
+        #contact p { font-size: 18px; color: #5a5a7a; }
+        #contact a { color: #4a6cf7; text-decoration: none; }
+        #contact a:hover { text-decoration: underline; }
+        footer { text-align: center; padding: 40px 60px; background: #1a1a2e; color: #a0a0c0; }
+        footer a { color: #a0a0c0; text-decoration: none; margin: 0 16px; }
+        footer a:hover { color: #4a6cf7; }
+        @media (max-width: 768px) {
+            header { flex-direction: column; padding: 20px; }
+            nav { margin-top: 15px; }
+            nav a { margin: 0 10px; font-size: 14px; }
+            .hero { flex-direction: column; padding: 40px 20px; }
+            .hero-text h1 { font-size: 32px; }
+            .hero-text p { max-width: 100%; }
+            #features, #about, #contact { padding: 40px 20px; }
+            .features-grid { grid-template-columns: 1fr; }
+            footer { padding: 30px 20px; }
+            footer a { display: block; margin: 8px 0; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Aurora<span>Fin</span></div>
+        <nav>
+            <a href="#features">Возможности</a>
+            <a href="#about">О нас</a>
+            <a href="#contact">Контакты</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-text">
+            <h1>Управляйте бюджетом<br>в пару кликов</h1>
+            <p>Ежедневный учет расходов, планирование бюджета и аналитика — всё в одном приложении.</p>
+        </div>
+    </section>
+
+    <section id="features">
+        <h2>Что умеет Aurora</h2>
+        <div class="features-grid">
+            <div class="feature"><span>📊</span><h3>Учет расходов</h3><p>Вносите траты за секунды — только сумма и категория</p></div>
+            <div class="feature"><span>📈</span><h3>Планирование бюджета</h3><p>Недельные и месячные планы с учетом трендов</p></div>
+            <div class="feature"><span>💡</span><h3>Аналитика</h3><p>Наглядные отчеты по категориям</p></div>
+            <div class="feature"><span>☁️</span><h3>Резервное копирование</h3><p>Автосохранение в Google Drive</p></div>
+            <div class="feature"><span>📁</span><h3>Экспорт в CSV</h3><p>Выгружайте данные для анализа</p></div>
+            <div class="feature"><span>🔒</span><h3>Конфиденциальность</h3><p>Данные не передаются третьим лицам</p></div>
+        </div>
+    </section>
+
+    <section id="about">
+        <h2>О нас</h2>
+        <p>Мы — команда разработчиков, создающих финансовые инструменты для повседневного использования.</p>
+        <p style="margin-top: 16px;">Наш продукт помогает людям управлять своими деньгами легко и удобно.</p>
+    </section>
+
+    <section id="contact">
+        <h2>Контакты</h2>
+        <p>По всем вопросам пишите нам:</p>
+        <p style="margin-top: 12px; font-size: 20px;"><a href="mailto:support@aurorafin.ru">support@aurorafin.ru</a></p>
+    </section>
+
+    <footer>
+        <p>© 2026 Aurora Fin. Все права защищены.</p>
+        <div style="margin-top: 12px;">
+            <a href="/privacy.html">Политика конфиденциальности</a>
+            <a href="#">Условия использования</a>
+            <a href="mailto:support@aurorafin.ru">support@aurorafin.ru</a>
+        </div>
+    </footer>
+</body>
+</html>

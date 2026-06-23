@@ -1,0 +1,1244 @@
+import streamlit as st
+import sqlite3
+import hashlib
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+import time
+from datetime import datetime, timedelta
+from sklearn.ensemble import RandomForestRegressor
+import joblib
+import os
+import requests
+import json
+from sentence_transformers import SentenceTransformer
+import faiss
+from dotenv import load_dotenv
+import whisper
+import pyaudio
+import wave
+import tempfile
+
+load_dotenv()
+
+# ------------------ НАСТРОЙКА ТЕМЫ ------------------
+def init_theme():
+    if 'theme' not in st.session_state:
+        st.session_state.theme = {'mode': 'light', 'accent': '#FFD700'}
+    if 'selected_service' not in st.session_state:
+        st.session_state.selected_service = None
+    if 'page' not in st.session_state:
+        st.session_state.page = 'home'
+    if 'finance_subpage' not in st.session_state:
+        st.session_state.finance_subpage = 'overview'
+    if 'chat_messages' not in st.session_state:
+        st.session_state.chat_messages = []
+    if 'uploaded_data' not in st.session_state:
+        st.session_state.uploaded_data = None
+    if 'kpi_updated' not in st.session_state:
+        st.session_state.kpi_updated = False
+
+init_theme()
+
+def apply_theme():
+    if st.session_state.theme['mode'] == 'dark':
+        bg_color = '#1e1e2e'; text_color = '#ffffff'; card_bg = '#2d2d3a'
+    else:
+        bg_color = '#ffffff'; text_color = '#000000'; card_bg = '#f5f5f5'
+    st.markdown(f"""
+    <style>
+        .stApp {{ background-color: {bg_color}; color: {text_color}; }}
+        .stButton > button {{ background-color: {st.session_state.theme['accent']}; color: black; border-radius: 10px; font-weight: bold; }}
+        .stMetric {{ background-color: {card_bg}; border-radius: 10px; padding: 10px; }}
+        h1, h2, h3, h4, h5, h6 {{ color: {st.session_state.theme['accent']} !important; }}
+        .service-card {{ background-color: {card_bg}; border-radius: 10px; padding: 15px; margin: 5px; cursor: pointer; text-align: center; transition: transform 0.2s; }}
+        .service-card:hover {{ transform: scale(1.02); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }}
+        .au-icon {{ font-size: 24px; color: {st.session_state.theme['accent']}; font-weight: bold; }}
+        .user-message {{ text-align: right; margin: 5px; padding: 5px; background-color: {st.session_state.theme['accent']}; border-radius: 10px; color: black; }}
+        .bot-message {{ text-align: left; margin: 5px; padding: 5px; background-color: #e0e0e0; border-radius: 10px; color: black; }}
+        .floating-chat {{ position: fixed; bottom: 20px; right: 20px; z-index: 1000; }}
+        .stPopover button {{ width: 60px !important; height: 60px !important; border-radius: 50% !important; background-color: #FFD700 !important; color: black !important; font-size: 28px !important; display: flex !important; align-items: center !important; justify-content: center !important; border: none !important; box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important; }}
+        .stPopover button:hover {{ transform: scale(1.05) !important; }}
+    </style>
+    """, unsafe_allow_html=True)
+
+# ------------------ ПЕРЕВОД ------------------
+translations = {
+    "ru": {
+        "title": "🔐 Аврора 6.2 — вход в систему",
+        "login_tab": "Вход",
+        "register_tab": "Регистрация",
+        "inn": "ИНН",
+        "password": "Пароль",
+        "login_btn": "Войти",
+        "consent_warning": "Необходимо дать согласие на обработку персональных данных",
+        "consent_btn": "Согласен",
+        "register_btn": "Зарегистрироваться",
+        "name": "Полное имя",
+        "repeat_password": "Повторите пароль",
+        "role": "Роль",
+        "role_manager": "Управляющий",
+        "role_director": "Руководитель",
+        "role_marketer": "Маркетолог",
+        "inn_error": "ИНН должен содержать 10 или 12 цифр",
+        "pwd_mismatch": "Пароли не совпадают",
+        "register_success": "Регистрация успешна! Теперь войдите.",
+        "user_exists": "Пользователь с таким ИНН уже существует",
+        "welcome": "Добрый день",
+        "logout": "Выйти",
+        "connect_data": "Подключить данные ▼",
+        "upload_csv": "📁 Загрузить CSV",
+        "connect_bank": "🏦 Подключить банк",
+        "integration_info": "Поддержка интеграции с расчётным счётом, кассой и CRM в разработке.",
+        "finance": "💰 Финансы",
+        "employees": "👥 Сотрудники",
+        "counterparty": "🔍 Проверка контрагентов",
+        "risks": "📊 Риски по ОКВЭД",
+        "sub_overview": "📈 Общий план",
+        "sub_balance": "💰 Баланс",
+        "sub_expenses": "📉 Расходы",
+        "sub_goals": "🎯 Цели",
+        "sub_summary": "📊 Итоги",
+        "sub_cashflow": "💵 ОДДС",
+        "sub_forecast": "📈 Прогноз V2.0",
+        "sub_min_balance": "⚠️ Контроль остатка",
+        "kpi_header": "Ключевые показатели эффективности (KPI)",
+        "goal_title": "Цель по прибыли",
+        "set_goal": "Установить цель",
+        "current_goal": "Текущая цель",
+        "remaining": "Осталось",
+        "forecast_text": "Прогноз:",
+        "will_achieve": "сможем достичь",
+        "wont_achieve": "не сможем достичь",
+        "probability": "с вероятностью",
+        "expenses_header": "Статьи расходов",
+        "total_expenses": "Итого расходов",
+        "expense_structure": "Структура расходов",
+        "balance_demo": "Пример условный, визуализация на бета-данных",
+        "employee_name": "Имя",
+        "employee_position": "Должность",
+        "employee_phone": "Телефон (начинается с 1)",
+        "employee_birth": "Дата рождения",
+        "employee_hours": "Рабочие часы",
+        "employee_plan": "План (руб)",
+        "employee_actual": "Выполнение (руб)",
+        "employee_tasks": "Задачи",
+        "add_employee": "Добавить сотрудника",
+        "summary_header": "Сводная таблица результатов",
+        "revenue": "Выручка",
+        "expenses": "Расходы",
+        "profit": "Прибыль / Убыток",
+        "cashflow_header": "Отчёт о движении денежных средств",
+        "historical": "Исторический ДДС",
+        "forecast_cf": "Прогноз ДДС",
+        "important_header": "Важные события",
+        "days_left": "дней осталось",
+        "recommendations": "Рекомендации для бизнеса"
+    },
+    "en": {}
+}
+
+# ------------------ БАЗА ДАННЫХ И ФУНКЦИИ ------------------
+def init_db():
+    conn = sqlite3.connect('avrora_future.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS users
+                 (inn TEXT PRIMARY KEY,
+                  name TEXT,
+                  password_hash TEXT,
+                  consent BOOLEAN,
+                  role TEXT,
+                  created_at TIMESTAMP,
+                  lang TEXT DEFAULT 'ru')''')
+    c.execute('''CREATE TABLE IF NOT EXISTS employees
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  inn_owner TEXT,
+                  name TEXT,
+                  position TEXT,
+                  phone TEXT,
+                  birth_date TEXT,
+                  work_hours TEXT,
+                  plan REAL,
+                  actual REAL,
+                  tasks TEXT,
+                  FOREIGN KEY(inn_owner) REFERENCES users(inn))''')
+    c.execute('''CREATE TABLE IF NOT EXISTS events
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  inn_owner TEXT,
+                  event_date DATE,
+                  title TEXT,
+                  description TEXT,
+                  event_type TEXT,
+                  FOREIGN KEY(inn_owner) REFERENCES users(inn))''')
+    c.execute('''CREATE TABLE IF NOT EXISTS goals
+                 (inn_owner TEXT PRIMARY KEY,
+                  profit_goal REAL,
+                  FOREIGN KEY(inn_owner) REFERENCES users(inn))''')
+    c.execute('''CREATE TABLE IF NOT EXISTS expense_details
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  inn_owner TEXT,
+                  expense_type TEXT,
+                  description TEXT,
+                  amount REAL,
+                  due_date DATE,
+                  extra_info TEXT,
+                  FOREIGN KEY(inn_owner) REFERENCES users(inn))''')
+    conn.commit()
+    conn.close()
+
+init_db()
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def register_user(inn, name, password, role, lang):
+    conn = sqlite3.connect('avrora_future.db')
+    c = conn.cursor()
+    try:
+        c.execute("INSERT INTO users (inn, name, password_hash, consent, role, created_at, lang) VALUES (?,?,?,?,?,?,?)",
+                  (inn, name, hash_password(password), False, role, datetime.now(), lang))
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.IntegrityError:
+        conn.close()
+        return False
+
+def check_user(inn, password):
+    conn = sqlite3.connect('avrora_future.db')
+    c = conn.cursor()
+    c.execute("SELECT password_hash, consent, name, role, lang FROM users WHERE inn=?", (inn,))
+    row = c.fetchone()
+    conn.close()
+    if row and row[0] == hash_password(password):
+        return {"consent": row[1], "name": row[2], "role": row[3], "lang": row[4]}
+    return None
+
+def update_consent(inn):
+    conn = sqlite3.connect('avrora_future.db')
+    c = conn.cursor()
+    c.execute("UPDATE users SET consent = 1 WHERE inn=?", (inn,))
+    conn.commit()
+    conn.close()
+
+def get_user_by_inn(inn):
+    conn = sqlite3.connect('avrora_future.db')
+    c = conn.cursor()
+    c.execute("SELECT name, role, lang FROM users WHERE inn=?", (inn,))
+    row = c.fetchone()
+    conn.close()
+    if row:
+        return {"name": row[0], "role": row[1], "lang": row[2]}
+    return None
+
+def get_profit_goal(inn):
+    conn = sqlite3.connect('avrora_future.db')
+    c = conn.cursor()
+    c.execute("SELECT profit_goal FROM goals WHERE inn_owner=?", (inn,))
+    row = c.fetchone()
+    conn.close()
+    return row[0] if row else 300000
+
+def set_profit_goal(inn, goal):
+    conn = sqlite3.connect('avrora_future.db')
+    c = conn.cursor()
+    c.execute("REPLACE INTO goals (inn_owner, profit_goal) VALUES (?,?)", (inn, goal))
+    conn.commit()
+    conn.close()
+
+def format_number(x):
+    return f"{x:,.0f}".replace(",", " ")
+
+def color_kpi(value, good, medium):
+    if value >= good:
+        return "green"
+    elif value >= medium:
+        return "orange"
+    else:
+        return "red"
+
+def show_time_greeting(lang):
+    hour = datetime.now().hour
+    if lang == "ru":
+        if 5 <= hour < 12: greeting = "Доброе утро"
+        elif 12 <= hour < 18: greeting = "Добрый день"
+        elif 18 <= hour < 23: greeting = "Добрый вечер"
+        else: greeting = "Доброй ночи"
+    else:
+        greeting = "Good day"
+    placeholder = st.empty()
+    placeholder.markdown(f"""
+    <div style="position:fixed; top:0; left:0; width:100%; height:100%; background-color:#2c3e50; display:flex; justify-content:center; align-items:center; z-index:9999;">
+        <h1 style="color:white; font-size:48px;">{greeting}!</h1>
+    </div>
+    """, unsafe_allow_html=True)
+    time.sleep(2)
+    placeholder.empty()
+
+def create_3d_pie(value, target, title, lang):
+    remaining = max(0, target - value)
+    percentage = (value / target) * 100 if target > 0 else 0
+    fig = go.Figure(data=[go.Pie(
+        labels=['Достигнуто' if lang=='ru' else 'Achieved', 'Осталось' if lang=='ru' else 'Remaining'],
+        values=[value, remaining],
+        marker_colors=['#2ecc71', '#e74c3c'],
+        hole=0.4,
+        textinfo='none',
+        pull=[0.05, 0],
+        sort=False
+    )])
+    fig.update_layout(
+        title=title,
+        annotations=[dict(text=f"{format_number(value)}<br>({percentage:.1f}%)", x=0.5, y=0.5, font_size=16, showarrow=False)],
+        height=400,
+        width=400,
+        margin=dict(l=20, r=20, t=50, b=20),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+    return fig
+
+def forecast_outcome(value, target):
+    if value >= target:
+        return "достигнута"
+    elif value >= target * 0.8:
+        return f"с вероятностью {np.random.randint(70,95)}%"
+    elif value >= target * 0.5:
+        return f"с вероятностью {np.random.randint(40,70)}%"
+    else:
+        return "не сможем"
+
+# ------------------ ПРОГНОЗ КАССОВЫХ РАЗРЫВОВ (СТАРЫЙ) ------------------
+def generate_balance_series(days=90):
+    np.random.seed(42)
+    dates = pd.date_range(end=datetime.now().date(), periods=days)
+    balance = 50000 + np.cumsum(np.random.normal(0, 2000, days))
+    balance[30] -= 30000
+    balance[60] -= 25000
+    balance[75] -= 20000
+    balance = np.maximum(balance, -20000)
+    return pd.Series(balance, index=dates, name='balance')
+
+def prepare_features_from_series(balance_series):
+    df = pd.DataFrame({'balance': balance_series})
+    df.index = pd.to_datetime(df.index)
+    df['dayofweek'] = df.index.dayofweek
+    for lag in range(1, 8):
+        df[f'lag_{lag}'] = df['balance'].shift(lag)
+    df['rolling_mean_7'] = df['balance'].rolling(7).mean()
+    df = df.dropna()
+    features = ['dayofweek'] + [f'lag_{i}' for i in range(1,8)] + ['rolling_mean_7']
+    X = df[features]
+    y = df['balance']
+    return X, y
+
+def forecast_cash_gap(days_ahead=7):
+    balance_series = generate_balance_series(90)
+    X, y = prepare_features_from_series(balance_series)
+    model = RandomForestRegressor(n_estimators=50, random_state=42)
+    model.fit(X, y)
+    last = X.iloc[-1:].copy()
+    forecast = []
+    for _ in range(days_ahead):
+        pred = model.predict(last)[0]
+        forecast.append(pred)
+        new = last.iloc[0].copy()
+        for lag in range(7, 1, -1):
+            new[f'lag_{lag}'] = new[f'lag_{lag-1}']
+        new['lag_1'] = pred
+        new['dayofweek'] = (new['dayofweek'] + 1) % 7
+        new['rolling_mean_7'] = (new['rolling_mean_7'] * 7 - last['lag_7'].iloc[0] + pred) / 7
+        last = pd.DataFrame([new])
+    future_dates = [balance_series.index[-1] + timedelta(days=i+1) for i in range(days_ahead)]
+    return future_dates, forecast
+
+# ------------------ МОДЕЛЬ V2.0 ------------------
+@st.cache_resource
+def load_v2_model():
+    model = joblib.load('model_v2_median.pkl')
+    feature_cols = open('features_v2.txt').read().strip().split(',')
+    return model, feature_cols
+
+def add_calendar_features(df):
+    df = df.copy()
+    df['dayofweek'] = df['date'].dt.dayofweek
+    df['is_weekend'] = (df['dayofweek'] >= 5).astype(int)
+    df['day_of_month'] = df['date'].dt.day
+    df['month'] = df['date'].dt.month
+    df['quarter'] = df['date'].dt.quarter
+    df['is_month_end'] = df['date'].dt.is_month_end.astype(int)
+    df['is_quarter_end'] = (df['date'].dt.quarter != df['date'].shift(1).dt.quarter).astype(int)
+    df['is_tax_day_25'] = (df['day_of_month'] == 25).astype(int)
+    df['is_tax_day_28'] = (df['day_of_month'] == 28).astype(int)
+    df['is_payday_early'] = df['day_of_month'].between(5, 10).astype(int)
+    df['is_payday_late'] = df['day_of_month'].between(20, 25).astype(int)
+    holidays = ['2024-01-01','2024-01-02','2024-01-07','2024-02-23','2024-03-08',
+                '2024-05-01','2024-05-09','2024-06-12','2024-11-04']
+    df['is_holiday'] = df['date'].isin(pd.to_datetime(holidays)).astype(int)
+    return df
+
+def prepare_features(data):
+    data = data.copy()
+    for lag in [1,2,3,7,14]:
+        data[f'lag_{lag}'] = data['balance'].shift(lag)
+    data['rolling_mean_7'] = data['balance'].rolling(7).mean()
+    data['rolling_std_7'] = data['balance'].rolling(7).std()
+    return data
+
+def predict_n_days(model, df_history, n_days, feature_cols):
+    df_feat = add_calendar_features(df_history)
+    df_feat = prepare_features(df_feat)
+    df_feat = df_feat.dropna().reset_index(drop=True)
+    history = df_feat.copy()
+    preds = []
+    for _ in range(n_days):
+        current = history.iloc[-1:].copy()
+        X_pred = current[feature_cols]
+        pred = model.predict(X_pred)[0]
+        preds.append(pred)
+        new_date = current['date'].iloc[0] + timedelta(days=1)
+        new_row = pd.DataFrame({'date': [new_date], 'balance': [pred]})
+        new_row = add_calendar_features(new_row)
+        history = pd.concat([history, new_row], ignore_index=True)
+        history = prepare_features(history)
+    return preds
+
+# ------------------ АССИСТЕНТ ------------------
+@st.cache_resource
+def load_assistant():
+    embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+    df1 = pd.read_csv('/Users/marselsarybaev/avrora_day1/coffee_shop.csv')
+    df2 = pd.read_csv('/Users/marselsarybaev/avrora_day1/stolovaya_crisis.csv')
+    def make_frags(df):
+        df['date'] = pd.to_datetime(df['date'])
+        return [f"Дата: {row['date'].strftime('%Y-%m-%d')}, остаток: {row['balance']:.2f} руб." for _, row in df.iterrows()]
+    frags = make_frags(df1) + make_frags(df2)
+    embeddings = embedding_model.encode(frags, show_progress_bar=False)
+    index = faiss.IndexFlatL2(embeddings.shape[1])
+    index.add(embeddings.astype('float32'))
+    return embedding_model, index, frags
+
+def search(query, model, index, fragments, k=3):
+    query_emb = model.encode([query])
+    distances, indices = index.search(query_emb.astype('float32'), k)
+    return [fragments[i] for i in indices[0]]
+
+def ask_aurora(question, model, index, fragments):
+    df_bal = pd.read_csv('/Users/marselsarybaev/avrora_day1/coffee_shop.csv')
+    df_bal['date'] = pd.to_datetime(df_bal['date'])
+    df_bal = df_bal.sort_values('date')
+    last = df_bal['balance'].iloc[-1]
+    avg30 = df_bal['balance'].tail(30).mean()
+    if len(df_bal) >= 30:
+        profit = last - df_bal['balance'].iloc[-30]
+        roe = (profit / avg30)*100 if avg30!=0 else 0
+    else:
+        roe = 0
+    q = question.lower()
+    if 'остаток' in q:
+        return f"Текущий остаток: {last:.2f} руб."
+    if 'средний' in q:
+        return f"Средний остаток за 30 дней: {avg30:.2f} руб."
+    if 'рентабельность капитала' in q or 'roe' in q:
+        return f"Рентабельность капитала (ROE) за 30 дней: {roe:.2f}%."
+    if 'рентабельность продаж' in q:
+        return "Для рентабельности продаж нужны данные о выручке."
+    ctx = search(question, model, index, fragments)
+    if not ctx:
+        return "Я совсем маленькая, пока не могу ответить, но учусь."
+    context = "\n".join(ctx[:2])
+    prompt = f"Ответь на вопрос на основе данных:\n{context}\nВопрос: {question}\nОтвет:"
+    url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
+    headers = {"Content-Type": "application/json", "Authorization": f"Api-Key {os.getenv('YANDEX_API_KEY')}"}
+    data = {
+        "modelUri": f"gpt://{os.getenv('YANDEX_FOLDER_ID')}/yandexgpt/latest",
+        "completionOptions": {"stream": False, "temperature": 0.3, "maxTokens": 200},
+        "messages": [{"role": "user", "text": prompt}]
+    }
+    resp = requests.post(url, headers=headers, json=data)
+    if resp.status_code == 200:
+        return resp.json()['result']['alternatives'][0]['message']['text']
+    return "Ошибка API"
+
+def record_and_transcribe(duration=60):
+    FORMAT = pyaudio.paInt16
+    CHANNELS = 1
+    RATE = 16000
+    CHUNK = 1024
+    RECORD_SECONDS = duration
+    st.write(f"Говорите {RECORD_SECONDS} секунд...")
+    p = pyaudio.PyAudio()
+    stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
+    frames = []
+    for _ in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+        data = stream.read(CHUNK)
+        frames.append(data)
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
+        wav_filename = tmpfile.name
+    wf = wave.open(wav_filename, 'wb')
+    wf.setnchannels(CHANNELS)
+    wf.setsampwidth(p.get_sample_size(FORMAT))
+    wf.setframerate(RATE)
+    wf.writeframes(b''.join(frames))
+    wf.close()
+    st.write("Распознаю...")
+    whisper_model = whisper.load_model("base")
+    result = whisper_model.transcribe(wav_filename)
+    os.unlink(wav_filename)
+    return result["text"].strip()
+
+# ------------------ РИСКИ ПО ОКВЭД ------------------
+def get_okved_risks(okved_code):
+    code_prefix = okved_code.split('.')[0][:2]
+    sections = {
+        "01": "Сельское, лесное хозяйство, охота, рыболовство",
+        "10": "Производство пищевых продуктов",
+        "11": "Производство напитков",
+        "12": "Производство табачных изделий",
+        "13": "Производство текстиля",
+        "14": "Производство одежды",
+        "15": "Производство кожи",
+        "16": "Обработка древесины",
+        "17": "Производство бумаги",
+        "18": "Печать",
+        "19": "Производство кокса и нефтепродуктов",
+        "20": "Производство химических веществ",
+        "21": "Производство лекарств",
+        "22": "Резиновые и пластмассовые изделия",
+        "23": "Производство прочей неметаллической продукции",
+        "24": "Металлургия",
+        "25": "Готовые металлические изделия",
+        "26": "Компьютеры, электроника",
+        "27": "Электрическое оборудование",
+        "28": "Машины и оборудование",
+        "29": "Автотранспорт",
+        "30": "Прочие транспортные средства",
+        "31": "Мебель",
+        "32": "Прочие готовые изделия",
+        "33": "Ремонт и монтаж машин",
+        "35": "Электроэнергия, газ, пар",
+        "36": "Вода",
+        "37": "Сточные воды",
+        "38": "Отходы",
+        "39": "Ликвидация загрязнений",
+        "41": "Строительство зданий",
+        "42": "Инженерные сооружения",
+        "43": "Специализированные строительные работы",
+        "45": "Торговля автотранспортом",
+        "46": "Оптовая торговля",
+        "47": "Розничная торговля",
+        "49": "Сухопутный транспорт",
+        "50": "Водный транспорт",
+        "51": "Воздушный транспорт",
+        "52": "Складское хозяйство",
+        "53": "Почтовая и курьерская деятельность",
+        "55": "Проживание",
+        "56": "Общественное питание",
+        "58": "Издательская деятельность",
+        "59": "Кино, видео",
+        "60": "Телевидение и радио",
+        "61": "Связь",
+        "62": "Разработка ПО",
+        "63": "Информационные технологии",
+        "64": "Финансовые услуги",
+        "65": "Страхование",
+        "66": "Вспомогательная финансовая деятельность",
+        "68": "Операции с недвижимостью",
+        "69": "Право и бухгалтерия",
+        "70": "Управленческое консультирование",
+        "71": "Архитектура и инжиниринг",
+        "72": "Научные исследования",
+        "73": "Реклама",
+        "74": "Профессиональная научно-техническая деятельность",
+        "75": "Ветеринария",
+        "77": "Аренда и лизинг",
+        "78": "Трудоустройство",
+        "79": "Туризм",
+        "80": "Безопасность",
+        "81": "Обслуживание зданий",
+        "82": "Административная деятельность",
+        "84": "Госуправление",
+        "85": "Образование",
+        "86": "Здравоохранение",
+        "87": "Уход с проживанием",
+        "88": "Социальные услуги",
+        "90": "Творческая деятельность",
+        "91": "Библиотеки, музеи",
+        "92": "Азартные игры",
+        "93": "Спорт, отдых",
+        "94": "Общественные организации",
+        "95": "Ремонт",
+        "96": "Прочие персональные услуги"
+    }
+    name = sections.get(code_prefix, "Общая категория")
+    if code_prefix in ["01","02","03"]:
+        features = "Сезонность, зависимость от погоды, длительный цикл оборота."
+        risks = "Неурожай, падение цен, рост стоимости ресурсов."
+        mitigation = "Диверсификация, форвардные контракты, субсидии."
+    elif code_prefix in ["10","11","12"]:
+        features = "Высокая конкуренция, короткие сроки годности."
+        risks = "Рост себестоимости, брак, сезонность спроса."
+        mitigation = "Оптимизация логистики, контроль качества."
+    elif code_prefix in ["45","46","47"]:
+        features = "Высокая оборачиваемость, чувствительность к спросу."
+        risks = "Падение трафика, рост аренды, товарные остатки."
+        mitigation = "Управление запасами, онлайн-продажи, лояльность."
+    elif code_prefix in ["55","56"]:
+        features = "Зависимость от проходимости, санитарные требования."
+        risks = "Изменение вкусов, рост цен на продукты, дефицит персонала."
+        mitigation = "Доставка, оптимизация меню, обучение."
+    elif code_prefix in ["62","63"]:
+        features = "Высокая маржинальность, быстрая смена технологий."
+        risks = "Утечка кадров, зависимость от заказчиков."
+        mitigation = "Резервирование ФОТ, гибкие методологии."
+    elif code_prefix == "68":
+        features = "Низкая ликвидность, длинный цикл сделки."
+        risks = "Падение рынка, долговая нагрузка, простои."
+        mitigation = "Долгосрочная аренда, страхование."
+    else:
+        features = "Средний уровень стандартизации, разнородные виды деятельности."
+        risks = "Рыночные колебания, изменение законодательства."
+        mitigation = "Мониторинг рынка, оптимизация издержек."
+    return {"name": name, "features": features, "risks": risks, "mitigation": mitigation}
+
+# ------------------ ФУНКЦИИ ДЛЯ АНАЛИТИКИ ------------------
+def get_status_text(profit_margin, cash_gap_expected):
+    if cash_gap_expected:
+        return "Кассовый разрыв", "🔴", "danger"
+    elif profit_margin >= 0.3:
+        return "Отлично", "🟢", "good"
+    elif profit_margin >= 0.2:
+        return "Хорошо", "🟡", "normal"
+    elif profit_margin >= 0.1:
+        return "Нормально", "🟠", "medium"
+    elif profit_margin >= 0.05:
+        return "Средне", "🟤", "warning"
+    else:
+        return "Внимание / Тревога", "🔔", "alert"
+
+def generate_recommendations(profit_margin, cash_gap_expected, cash_flow):
+    rec = []
+    if cash_gap_expected:
+        rec.append("⚠️ Ожидается кассовый разрыв! Рекомендуем перенести крупные платежи или привлечь финансирование.")
+    if profit_margin < 0.1:
+        rec.append("📉 Низкая рентабельность. Проанализируйте структуру расходов.")
+    if cash_flow < 0:
+        rec.append("💸 Отрицательный денежный поток. Ускорьте сбор дебиторской задолженности.")
+    if profit_margin >= 0.25:
+        rec.append("✅ Высокая маржинальность. Инвестируйте свободные средства.")
+    if not rec:
+        rec.append("📊 Все показатели в норме.")
+    return rec
+
+# ------------------ СТРАНИЦА "СОТРУДНИКИ" ------------------
+def employees_page(lang, t):
+    st.header(t["employees"])
+    with st.form("add_employee"):
+        emp_name = st.text_input(t["employee_name"])
+        emp_pos = st.text_input(t["employee_position"])
+        emp_phone = st.text_input(t["employee_phone"], value="1")
+        emp_birth = st.date_input(t["employee_birth"], value=datetime(1990,1,1))
+        emp_hours = st.text_input(t["employee_hours"], value="9:00-18:00")
+        emp_plan = st.number_input(t["employee_plan"], min_value=0, value=100000)
+        emp_actual = st.number_input(t["employee_actual"], min_value=0, value=80000)
+        emp_tasks = st.text_area(t["employee_tasks"], value="Задачи на месяц")
+        submitted = st.form_submit_button(t["add_employee"])
+        if submitted:
+            if not emp_phone.startswith("1"):
+                st.error("Телефон должен начинаться с 1" if lang=="ru" else "Phone must start with 1")
+            else:
+                conn = sqlite3.connect('avrora_future.db')
+                c = conn.cursor()
+                c.execute('''INSERT INTO employees 
+                             (inn_owner, name, position, phone, birth_date, work_hours, plan, actual, tasks)
+                             VALUES (?,?,?,?,?,?,?,?,?)''',
+                          (st.session_state.inn, emp_name, emp_pos, emp_phone, emp_birth.strftime('%Y-%m-%d'),
+                           emp_hours, emp_plan, emp_actual, emp_tasks))
+                conn.commit()
+                conn.close()
+                st.success("Сотрудник добавлен" if lang=="ru" else "Employee added")
+    conn = sqlite3.connect('avrora_future.db')
+    df_emp = pd.read_sql_query('''SELECT name, position, phone, birth_date, work_hours, plan, actual, tasks,
+                                         (actual * 100.0 / plan) as percent
+                                  FROM employees WHERE inn_owner=?''', conn, params=(st.session_state.inn,))
+    conn.close()
+    if not df_emp.empty:
+        df_emp = df_emp.reset_index(drop=True)
+        df_emp.index = df_emp.index + 1
+        df_emp.columns = [t["employee_name"], t["employee_position"], t["employee_phone"], t["employee_birth"],
+                          t["employee_hours"], t["employee_plan"], t["employee_actual"], t["employee_tasks"],
+                          "% выполнения" if lang=="ru" else "Completion %"]
+        df_emp["% выполнения"] = df_emp["% выполнения"].apply(lambda x: f"{x:.1f}%")
+        st.dataframe(df_emp)
+
+# ------------------ СТРАНИЦА "ПРОВЕРКА КОНТРАГЕНТОВ" ------------------
+def counterparty_page(lang):
+    st.header("🔍 Проверка контрагента по ИНН")
+    inn_input = st.text_input("Введите ИНН контрагента (10 или 12 цифр)", placeholder="Например: 7736207543")
+    if st.button("Проверить", type="primary"):
+        if not inn_input or len(inn_input) not in [10,12]:
+            st.warning("Введите корректный ИНН (10 или 12 цифр).")
+        else:
+            with st.spinner("Ищем информацию..."):
+                DADATA_API_KEY = "8f16b854dcbf4f81b7a16ea172264a95ea856400"
+                headers_dadata = {"Authorization": f"Token {DADATA_API_KEY}", "Content-Type": "application/json"}
+                payload = {"query": inn_input, "count": 1}
+                try:
+                    resp = requests.post("https://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/party", headers=headers_dadata, json=payload, timeout=10)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        if data.get("suggestions"):
+                            company = data["suggestions"][0]["data"]
+                            with st.container(border=True):
+                                col1, col2 = st.columns(2)
+                                with col1:
+                                    st.markdown(f"**{company.get('name', {}).get('full_with_opf', '—')}**")
+                                    status = company.get("state", {}).get("status", "")
+                                    if status == "ACTIVE":
+                                        st.success("Статус: **Действующее**")
+                                    elif status == "LIQUIDATING":
+                                        st.warning("Статус: **В процессе ликвидации**")
+                                    elif status == "LIQUIDATED":
+                                        st.error("Статус: **Ликвидировано**")
+                                    else:
+                                        st.info(f"Статус: {status if status else '—'}")
+                                    st.text(f"ИНН: {company.get('inn', '—')}  КПП: {company.get('kpp', '—')}")
+                                    st.text(f"ОГРН: {company.get('ogrn', '—')}")
+                                with col2:
+                                    reg_date = company.get("state", {}).get("registration_date", "")
+                                    st.text(f"Дата регистрации: {reg_date[:10] if reg_date else '—'}")
+                                    mgmt = company.get("management")
+                                    director = mgmt.get("name") if mgmt and isinstance(mgmt, dict) else "—"
+                                    st.text(f"Руководитель: {director}")
+                                    addr = company.get("address", {}).get("value", "—")
+                                    st.text(f"Адрес: {addr[:60] + '...' if len(addr)>60 else addr}")
+                            # Финансовые показатели
+                            st.markdown("---")
+                            st.subheader("📊 Финансовое положение и уровень риска")
+                            DATANEWTON_API_KEY = "Z1l7vgrBWrDt"
+                            try:
+                                url_newton = f"https://api.datanewton.ru/finances?inn={company['inn']}"
+                                headers_newton = {"accept": "application/json", "x-api-key": DATANEWTON_API_KEY}
+                                resp_newton = requests.get(url_newton, headers=headers_newton, timeout=10)
+                                if resp_newton.status_code == 200:
+                                    fin_data = resp_newton.json()
+                                    if fin_data and isinstance(fin_data, dict) and len(fin_data) > 0:
+                                        latest_year = max(fin_data.keys())
+                                        fin = fin_data[latest_year]
+                                        revenue = fin.get("Выручка", fin.get("2110"))
+                                        profit = fin.get("Чистая прибыль", fin.get("2400"))
+                                        assets = fin.get("ИтогоАктивов", fin.get("1600"))
+                                        col_f1, col_f2, col_f3 = st.columns(3)
+                                        with col_f1:
+                                            st.metric("Выручка", f"{revenue:,.0f} руб." if revenue else "—")
+                                        with col_f2:
+                                            st.metric("Чистая прибыль", f"{profit:,.0f} руб." if profit else "—")
+                                        with col_f3:
+                                            st.metric("Валюта баланса", f"{assets:,.0f} руб." if assets else "—")
+                                        if revenue and revenue <= 0:
+                                            st.error("**Высокий риск**: отсутствует выручка.")
+                                        elif profit and profit <= 0:
+                                            st.error("**Высокий риск**: компания убыточна.")
+                                        elif profit and profit < revenue * 0.05:
+                                            st.warning("**Средний риск**: низкая рентабельность.")
+                                        else:
+                                            st.success("**Низкий риск**: прибыльная компания с положительной выручкой.")
+                                    else:
+                                        st.info("Финансовые показатели не найдены.")
+                                else:
+                                    st.info(f"Финансовые данные недоступны (код: {resp_newton.status_code}).")
+                            except Exception as e:
+                                st.info("Сервис финансовых данных временно недоступен.")
+                        else:
+                            st.error("Контрагент не найден.")
+                    else:
+                        st.error(f"Ошибка API DaData: {resp.status_code}")
+                except Exception as e:
+                    st.error(f"Ошибка подключения: {e}")
+
+# ------------------ АВТОРИЗАЦИЯ И ОСНОВНОЙ ИНТЕРФЕЙС ------------------
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.inn = None
+    st.session_state.name = None
+    st.session_state.role = None
+    st.session_state.lang = "ru"
+    st.session_state.greeting_shown = False
+    st.session_state.selected_service = None
+
+if not st.session_state.logged_in:
+    theme_mode = st.sidebar.selectbox("Тема", ["light", "dark"], index=0 if st.session_state.theme['mode']=='light' else 1)
+    if theme_mode != st.session_state.theme['mode']:
+        st.session_state.theme['mode'] = theme_mode
+        st.rerun()
+    st.session_state.theme['accent'] = '#FFD700'
+    apply_theme()
+else:
+    apply_theme()
+
+if not st.session_state.logged_in:
+    lang = st.sidebar.selectbox("Language / Язык", ["ru", "en"], format_func=lambda x: "Русский" if x=="ru" else "English")
+    st.session_state.lang = lang
+else:
+    lang = st.session_state.lang
+
+t = translations[lang]
+
+if not st.session_state.logged_in:
+    st.title(t["title"])
+    tab1, tab2 = st.tabs([t["login_tab"], t["register_tab"]])
+    with tab1:
+        inn_login = st.text_input(t["inn"], key="login_inn")
+        password_login = st.text_input(t["password"], type="password", key="login_pwd")
+        if st.button(t["login_btn"]):
+            user = check_user(inn_login, password_login)
+            if user:
+                if not user["consent"]:
+                    st.warning(t["consent_warning"])
+                    st.session_state.pending_inn = inn_login
+                else:
+                    st.session_state.logged_in = True
+                    st.session_state.inn = inn_login
+                    st.session_state.name = user["name"]
+                    st.session_state.role = user["role"]
+                    st.session_state.lang = user["lang"]
+                    st.session_state.greeting_shown = False
+                    st.rerun()
+            else:
+                st.error("Неверный ИНН или пароль" if lang=="ru" else "Invalid INN or password")
+        if 'pending_inn' in st.session_state and st.session_state.pending_inn:
+            if st.button(t["consent_btn"]):
+                update_consent(st.session_state.pending_inn)
+                user_data = get_user_by_inn(st.session_state.pending_inn)
+                if user_data:
+                    st.session_state.logged_in = True
+                    st.session_state.inn = st.session_state.pending_inn
+                    st.session_state.name = user_data["name"]
+                    st.session_state.role = user_data["role"]
+                    st.session_state.lang = user_data["lang"]
+                    st.session_state.greeting_shown = False
+                    del st.session_state.pending_inn
+                    st.rerun()
+    with tab2:
+        inn_reg = st.text_input(t["inn"], key="reg_inn")
+        name_reg = st.text_input(t["name"], key="reg_name")
+        password_reg = st.text_input(t["password"], type="password", key="reg_pwd")
+        password_confirm = st.text_input(t["repeat_password"], type="password")
+        role_reg = st.selectbox(t["role"], ["manager", "director", "marketer"], format_func=lambda x: t[f"role_{x}"])
+        if st.button(t["register_btn"]):
+            if password_reg != password_confirm:
+                st.error(t["pwd_mismatch"])
+            elif len(inn_reg) not in [10,12]:
+                st.error(t["inn_error"])
+            else:
+                ok = register_user(inn_reg, name_reg, password_reg, role_reg, lang)
+                if ok:
+                    st.success(t["register_success"])
+                else:
+                    st.error(t["user_exists"])
+else:
+    if not st.session_state.greeting_shown:
+        show_time_greeting(lang)
+        st.session_state.greeting_shown = True
+
+    st.sidebar.markdown(f'<div class="au-icon">✨ Au ✨</div>', unsafe_allow_html=True)
+    st.sidebar.markdown(f"**{t['welcome']}, {st.session_state.name}**")
+    role_display = t.get(f"role_{st.session_state.role}", st.session_state.role)
+    st.sidebar.markdown(f"{t['role']}: {role_display}")
+    st.sidebar.info("🌟 Аврора — ваш помощник" if lang=="ru" else "🌟 Avrora — your assistant")
+    
+    with st.sidebar.expander("🎨 Настройка темы"):
+        theme_mode = st.selectbox("Режим", ["light", "dark"], index=0 if st.session_state.theme['mode']=='light' else 1)
+        if theme_mode != st.session_state.theme['mode']:
+            st.session_state.theme['mode'] = theme_mode
+            st.rerun()
+        st.color_picker("Акцентный цвет", st.session_state.theme['accent'], key="accent_picker")
+        st.session_state.theme['accent'] = st.session_state.accent_picker
+    
+    if st.sidebar.button(t["logout"]):
+        st.session_state.logged_in = False
+        st.session_state.inn = None
+        st.session_state.name = None
+        st.session_state.role = None
+        st.session_state.greeting_shown = False
+        st.session_state.selected_service = None
+        st.session_state.page = 'home'
+        st.session_state.finance_subpage = 'overview'
+        if 'pending_inn' in st.session_state:
+            del st.session_state.pending_inn
+        st.rerun()
+
+    st.title("🤖 Аврора 6.2 — интеллектуальная панель")
+    now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+    st.markdown(f"**📅 {now}**")
+
+    with st.expander(t["connect_data"]):
+        st.markdown(f"**{t['connect_data']}**" if lang=="ru" else "**Select data source:**")
+        col1, col2 = st.columns(2)
+        with col1:
+            uploaded_file = st.file_uploader("Выберите CSV-файл", type=["csv"])
+            if uploaded_file is not None:
+                df_upload = pd.read_csv(uploaded_file)
+                df_upload['date'] = pd.to_datetime(df_upload['date'])
+                st.session_state.uploaded_data = df_upload
+                # Рассчитываем KPI из загруженных данных
+                df_kpi = df_upload.copy()
+                df_kpi = df_kpi.sort_values('date')
+                changes = df_kpi['balance'].diff().fillna(0)
+                revenue = changes[changes > 0].sum()
+                profit = changes.sum()
+                margin = profit / revenue if revenue > 0 else 0
+                avg_balance = df_kpi['balance'].mean()
+                roi = (profit / avg_balance) if avg_balance != 0 else 0
+                if len(df_kpi) >= 30:
+                    cash_flow = df_kpi['balance'].iloc[-1] - df_kpi['balance'].iloc[-30]
+                else:
+                    cash_flow = df_kpi['balance'].iloc[-1] - df_kpi['balance'].iloc[0]
+                active_clients = (changes > 0).sum()
+                st.session_state.calculated_revenue = revenue
+                st.session_state.calculated_profit = profit
+                st.session_state.calculated_margin = margin
+                st.session_state.calculated_roi = roi
+                st.session_state.calculated_cash_flow = cash_flow
+                st.session_state.calculated_active_clients = active_clients
+                st.session_state.kpi_updated = True
+                st.success(f"Загружено {len(df_upload)} строк. KPI обновлены. Для прогноза нажмите «Анализ».")
+                st.dataframe(df_upload.head())
+        with col2:
+            if st.button(t["connect_bank"]):
+                st.info("Демо-режим: подключение к банку в разработке.")
+        st.info(t["integration_info"])
+
+    # ------------------ ОПРЕДЕЛЕНИЕ KPI (из загруженных данных или демо) ------------------
+    if st.session_state.get("kpi_updated", False):
+        revenue = st.session_state.calculated_revenue
+        profit = st.session_state.calculated_profit
+        margin = st.session_state.calculated_margin
+        roi = st.session_state.calculated_roi
+        cash_flow = st.session_state.calculated_cash_flow
+        active_clients = st.session_state.calculated_active_clients
+    else:
+        np.random.seed(42)
+        revenue = np.random.randint(500000, 2000000)
+        profit = np.random.randint(50000, 300000)
+        margin = profit / revenue if revenue > 0 else 0
+        roi = np.random.uniform(0.1, 0.4)
+        cash_flow = np.random.randint(-50000, 150000)
+        active_clients = np.random.randint(100, 1000)
+
+    profit_goal = get_profit_goal(st.session_state.inn)
+    kpi_dict = {
+        "Выручка (мес)": revenue,
+        "Чистая прибыль": profit,
+        "Маржинальность": margin,
+        "ROI": roi,
+        "Денежный поток": cash_flow,
+        "Кол-во активных клиентов": active_clients
+    }
+
+    future_dates, forecast_vals = forecast_cash_gap(7)
+    cash_gap_expected = any(v < 0 for v in forecast_vals)
+
+    # ------------------ ГЛАВНЫЙ ЭКРАН ------------------
+    if st.session_state.page == 'home':
+        st.markdown("## Выберите раздел")
+        pages = [("💰 Финансы", "finance"), ("👥 Сотрудники", "employees")]
+        cols = st.columns(4)
+        for idx, (label, key) in enumerate(pages):
+            with cols[idx % 4]:
+                if st.button(label, use_container_width=True):
+                    st.session_state.page = key
+                    st.rerun()
+    else:
+        if st.button("← На главную"):
+            st.session_state.page = 'home'
+            st.session_state.finance_subpage = 'overview'
+            st.rerun()
+        st.markdown("---")
+
+        # ------------------ ФИНАНСЫ ------------------
+        if st.session_state.page == "finance":
+            st.header("💰 Финансы")
+            subpages = [("📈 Общий план","overview"),("💰 Баланс","balance"),("📉 Расходы","expenses"),("🎯 Цели","goals"),("📊 Итоги","summary"),("💵 ОДДС","cashflow"),("📈 Прогноз V2.0","forecast"),("⚠️ Контроль остатка","min_balance")]
+            sub_cols = st.columns(4)
+            for idx, (label, key) in enumerate(subpages):
+                with sub_cols[idx % 4]:
+                    if st.button(label, use_container_width=True):
+                        st.session_state.finance_subpage = key
+                        st.rerun()
+            st.markdown("---")
+            if st.session_state.finance_subpage == "overview":
+                st.header(t["kpi_header"])
+                for name, value in kpi_dict.items():
+                    if name in ["Выручка (мес)", "Чистая прибыль", "Денежный поток"]:
+                        if "Выручка" in name: target_val = 1000000
+                        elif "Прибыль" in name: target_val = profit_goal
+                        else: target_val = 200000
+                        fig = create_3d_pie(value, target_val, name, lang)
+                        col1, col2 = st.columns([1,1])
+                        with col1: st.metric(name, format_number(value))
+                        with col2: st.plotly_chart(fig, use_container_width=True)
+                        remaining = max(0, target_val - value)
+                        forecast = forecast_outcome(value, target_val)
+                        st.markdown(f"**{t['remaining']}:** {format_number(remaining)} руб.")
+                        if forecast == "достигнута": st.success(f"{t['forecast_text']} {t['will_achieve']}")
+                        elif forecast.startswith("с вероятностью"): st.info(f"{t['forecast_text']} {forecast}")
+                        else: st.error(f"{t['forecast_text']} {t['wont_achieve']}")
+                        st.markdown("---")
+                    else:
+                        if name == "Маржинальность": color = color_kpi(value, 0.4, 0.25); st.markdown(f'<div style="color:{color}; font-size:20px;">{name}: {value:.1%}</div>', unsafe_allow_html=True)
+                        elif name == "ROI": color = color_kpi(value, 0.3, 0.15); st.markdown(f'<div style="color:{color}; font-size:20px;">{name}: {value:.1%}</div>', unsafe_allow_html=True)
+                        else: st.metric(name, format_number(value))
+            elif st.session_state.finance_subpage == "balance":
+                st.header(t["sub_balance"])
+                st.markdown(f"**{t['balance_demo']}**")
+                balance_series = generate_balance_series(90)
+                dates_hist = balance_series.index
+                balance_hist = balance_series.values
+                fig_balance = go.Figure()
+                fig_balance.add_trace(go.Scatter(x=dates_hist, y=balance_hist, mode='lines', name='Исторический баланс', line=dict(color='blue')))
+                fig_balance.add_trace(go.Scatter(x=future_dates, y=forecast_vals, mode='lines+markers', name='Прогноз баланса', line=dict(color='orange', dash='dash')))
+                fig_balance.add_hline(y=0, line_dash="dot", line_color="red", annotation_text="Порог разрыва" if lang=="ru" else "Gap threshold")
+                for i, val in enumerate(forecast_vals):
+                    if val < 0: fig_balance.add_vline(x=future_dates[i], line_dash="dash", line_color="red", opacity=0.5)
+                fig_balance.update_layout(title="Динамика баланса и прогноз" if lang=="ru" else "Balance dynamics", xaxis_title="Дата", yaxis_title="Остаток (руб)")
+                st.plotly_chart(fig_balance, use_container_width=True)
+                if cash_gap_expected: st.error("⚠️ Внимание: ожидаются кассовые разрывы!" if lang=="ru" else "⚠️ Cash gaps expected!")
+                else: st.success("✅ На ближайшую неделю кассовых разрывов не ожидается.")
+            elif st.session_state.finance_subpage == "expenses":
+                st.header(t["sub_expenses"])
+                with st.form("add_expense_detail"):
+                    expense_type = st.selectbox("Тип расхода", ["Аренда", "Зарплата", "Налоги", "Закупка", "Маркетинг", "Прочее"])
+                    description = st.text_input("Описание")
+                    amount = st.number_input("Сумма (руб)", min_value=0, value=10000)
+                    due_date = st.date_input("Дата платежа", value=datetime.now() + timedelta(days=30))
+                    extra_info = ""
+                    if expense_type == "Аренда":
+                        address = st.text_input("Адрес помещения")
+                        area = st.number_input("Площадь (м²)", min_value=0, value=50)
+                        contract_term = st.text_input("Срок договора", value="12 месяцев")
+                        extra_info = f"Адрес: {address}, Площадь: {area} м², Срок: {contract_term}"
+                    elif expense_type == "Зарплата":
+                        employee_name = st.text_input("Имя сотрудника")
+                        extra_info = f"Сотрудник: {employee_name}"
+                    elif expense_type == "Налоги":
+                        tax_type = st.text_input("Вид налога", value="НДС")
+                        extra_info = f"Вид налога: {tax_type}"
+                    submitted = st.form_submit_button("Добавить расход")
+                    if submitted:
+                        conn = sqlite3.connect('avrora_future.db')
+                        c = conn.cursor()
+                        c.execute("INSERT INTO expense_details (inn_owner, expense_type, description, amount, due_date, extra_info) VALUES (?,?,?,?,?,?)",
+                                  (st.session_state.inn, expense_type, description, amount, due_date, extra_info))
+                        conn.commit()
+                        conn.close()
+                        st.success("Расход добавлен")
+                st.subheader("Список запланированных расходов")
+                conn = sqlite3.connect('avrora_future.db')
+                df_exp_det = pd.read_sql_query("SELECT expense_type, description, amount, due_date, extra_info FROM expense_details WHERE inn_owner=?", conn, params=(st.session_state.inn,))
+                conn.close()
+                if not df_exp_det.empty:
+                    df_exp_det.columns = ["Тип", "Описание", "Сумма (руб)", "Дата платежа", "Детали"]
+                    st.dataframe(df_exp_det)
+                else:
+                    st.info("Нет добавленных расходов.")
+            elif st.session_state.finance_subpage == "goals":
+                st.header(t["sub_goals"])
+                current_goal = get_profit_goal(st.session_state.inn)
+                st.write(f"{t['current_goal']}: {format_number(current_goal)} руб.")
+                new_goal = st.number_input(t["set_goal"], min_value=0, value=int(current_goal), step=10000)
+                if st.button(t["set_goal"]):
+                    set_profit_goal(st.session_state.inn, new_goal)
+                    st.success(f"Цель обновлена: {format_number(new_goal)} руб." if lang=="ru" else f"Goal updated")
+                    st.rerun()
+            elif st.session_state.finance_subpage == "summary":
+                st.header(t["sub_summary"])
+                revenue_val = revenue
+                expenses_val = sum([50000,150000,30000,80000,25000,15000,10000])
+                profit_loss = revenue_val - expenses_val
+                col1, col2, col3 = st.columns(3)
+                with col1: st.metric(t["revenue"], format_number(revenue_val))
+                with col2: st.metric(t["expenses"], format_number(expenses_val))
+                with col3:
+                    color = "green" if profit_loss >= 0 else "red"
+                    st.markdown(f'<div style="color:{color}; font-size:24px; font-weight:bold;">{t["profit"]}: {format_number(profit_loss)} руб.</div>', unsafe_allow_html=True)
+                profit_margin = profit_loss / revenue_val if revenue_val > 0 else 0
+                status_text, status_emoji, status_class = get_status_text(profit_margin, cash_gap_expected)
+                st.markdown(f"**Статус бизнеса:** {status_emoji} {status_text}")
+                st.markdown(f"**Рентабельность:** {profit_margin:.1%}")
+                st.markdown(f"**Прогноз кассового разрыва:** {'Да' if cash_gap_expected else 'Нет'}")
+                st.subheader(t["recommendations"])
+                recs = generate_recommendations(profit_margin, cash_gap_expected, cash_flow)
+                for r in recs: st.markdown(f"- {r}")
+            elif st.session_state.finance_subpage == "cashflow":
+                st.header(t["sub_cashflow"])
+                np.random.seed(123)
+                days_cf = 90
+                dates_cf = pd.date_range(end=datetime.now().date(), periods=days_cf)
+                inflows = np.random.normal(50000, 15000, days_cf).astype(int)
+                inflows = np.maximum(inflows, 10000)
+                outflows = np.random.normal(40000, 12000, days_cf).astype(int)
+                outflows = np.maximum(outflows, 15000)
+                net_cf = inflows - outflows
+                balance_cf = 100000 + np.cumsum(net_cf)
+                fig_cf_hist = go.Figure()
+                fig_cf_hist.add_trace(go.Bar(x=dates_cf, y=inflows, name='Поступления', marker_color='green'))
+                fig_cf_hist.add_trace(go.Bar(x=dates_cf, y=-outflows, name='Платежи', marker_color='red'))
+                fig_cf_hist.update_layout(title="Исторический ДДС", barmode='relative')
+                st.plotly_chart(fig_cf_hist, use_container_width=True)
+                avg_inflow = np.mean(inflows[-30:])
+                avg_outflow = np.mean(outflows[-30:])
+                forecast_dates = [dates_cf[-1] + timedelta(days=i+1) for i in range(7)]
+                forecast_inflows = [max(0, int(np.random.normal(avg_inflow, avg_inflow*0.2))) for _ in range(7)]
+                forecast_outflows = [max(0, int(np.random.normal(avg_outflow, avg_outflow*0.2))) for _ in range(7)]
+                forecast_net = [forecast_inflows[i] - forecast_outflows[i] for i in range(7)]
+                last_balance = balance_cf[-1]
+                forecast_balance = [last_balance]
+                for net in forecast_net: forecast_balance.append(forecast_balance[-1] + net)
+                forecast_balance = forecast_balance[1:]
+                fig_cf_forecast = go.Figure()
+                fig_cf_forecast.add_trace(go.Bar(x=forecast_dates, y=forecast_inflows, name='Прогноз поступлений', marker_color='lightgreen'))
+                fig_cf_forecast.add_trace(go.Bar(x=forecast_dates, y=[-x for x in forecast_outflows], name='Прогноз платежей', marker_color='salmon'))
+                fig_cf_forecast.update_layout(title="Прогноз ДДС на 7 дней", barmode='relative')
+                st.plotly_chart(fig_cf_forecast, use_container_width=True)
+                cf_table = pd.DataFrame({"Дата": forecast_dates, "Прогноз остатка (руб)": [format_number(x) for x in forecast_balance]})
+                st.table(cf_table)
+            elif st.session_state.finance_subpage == "forecast":
+                st.header(t["sub_forecast"])
+                if st.button("Анализ", key="forecast_analyze"):
+                    with st.spinner("Выполняется прогноз..."):
+                        model, feat = load_v2_model()
+                        if st.session_state.uploaded_data is not None:
+                            df_raw = st.session_state.uploaded_data.copy()
+                        else:
+                            df_raw = pd.read_csv('/Users/marselsarybaev/avrora_day1/coffee_shop.csv')
+                            df_raw['date'] = pd.to_datetime(df_raw['date'])
+                        df_raw = df_raw.sort_values('date')
+                        preds = predict_n_days(model, df_raw, 30, feat)
+                        last_date = df_raw['date'].iloc[-1]
+                        future_dates = [last_date + timedelta(days=i+1) for i in range(30)]
+                        df_pred = pd.DataFrame({'Дата': future_dates, 'Прогноз остатка, руб.': preds})
+                        st.dataframe(df_pred, use_container_width=True)
+                        fig = go.Figure()
+                        fig.add_trace(go.Scatter(x=df_raw['date'], y=df_raw['balance'], mode='lines', name='История'))
+                        fig.add_trace(go.Scatter(x=future_dates, y=preds, mode='lines+markers', name='Прогноз'))
+                        fig.update_layout(title='Динамика остатка (v2.0)', xaxis_title='Дата', yaxis_title='Остаток, руб.')
+                        st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("Нажмите «Анализ», чтобы построить прогноз на основе загруженных данных.")
+            elif st.session_state.finance_subpage == "min_balance":
+                st.header(t["sub_min_balance"])
+                min_bal = st.number_input("Минимальный допустимый остаток (руб.)", value=30000.0, step=5000.0)
+                if st.button("Рассмотреть прогноз"):
+                    if st.session_state.uploaded_data is not None:
+                        df_raw = st.session_state.uploaded_data.copy()
+                    else:
+                        df_raw = pd.read_csv('/Users/marselsarybaev/avrora_day1/coffee_shop.csv')
+                        df_raw['date'] = pd.to_datetime(df_raw['date'])
+                    df_raw = df_raw.sort_values('date')
+                    model, feat = load_v2_model()
+                    preds = predict_n_days(model, df_raw, 30, feat)
+                    last_date = df_raw['date'].iloc[-1]
+                    future_dates = [last_date + timedelta(days=i+1) for i in range(30)]
+                    issues = [(d, p) for d, p in zip(future_dates, preds) if p < min_bal]
+                    if issues:
+                        st.warning(f"⚠️ Обнаружено {len(issues)} дней с остатком ниже {min_bal} руб.")
+                        for date, bal in issues:
+                            st.write(f"📅 {date.strftime('%Y-%m-%d')}: {bal:.2f} руб.")
+                            if bal < min_bal * 0.5:
+                                st.error("КРИТИЧНО! Срочно сообщите собственнику.")
+                            else:
+                                st.info("Рекомендуется ускорить инкассацию или отложить платежи.")
+                    else:
+                        st.success(f"✅ Прогноз не показывает падений ниже {min_bal} руб.")
+
+        # ------------------ СОТРУДНИКИ ------------------
+        elif st.session_state.page == "employees":
+            employees_page(lang, t)
+
+        # ------------------ ПРОВЕРКА КОНТРАГЕНТОВ ------------------
+        elif st.session_state.page == "counterparty":
+            counterparty_page(lang)
+
+        # ------------------ РИСКИ ПО ОКВЭД ------------------
+        elif st.session_state.page == "risks":
+            st.header(t["risks"])
+            okved_df = None
+            csv_path = 'data-20260601T1406-structure-20180402T1704.csv'
+            if os.path.exists(csv_path):
+                try:
+                    okved_df = pd.read_csv(csv_path, encoding='utf-8', sep=';', header=None, on_bad_lines='skip')
+                    okved_df = okved_df.iloc[:, [1,2]].copy()
+                    okved_df.columns = ['code', 'name']
+                    okved_df['code'] = okved_df['code'].astype(str).str.strip()
+                    okved_df['name'] = okved_df['name'].astype(str).str.strip()
+                    okved_df = okved_df.dropna().drop_duplicates(subset='code')
+                    okved_df['display'] = okved_df['code'] + " — " + okved_df['name']
+                except:
+                    okved_df = None
+            if okved_df is not None and not okved_df.empty:
+                search_term = st.text_input("Поиск по названию", placeholder="Введите часть названия...")
+                filtered_df = okved_df
+                if search_term:
+                    filtered_df = okved_df[okved_df['name'].str.contains(search_term, case=False, na=False)]
+                options = filtered_df['display'].tolist()
+                if options:
+                    selected_display = st.selectbox("Выберите ОКВЭД", options, index=0)
+                    selected_code = selected_display.split(" — ")[0]
+                else:
+                    st.warning("Ничего не найдено")
+                    selected_code = None
+                if selected_code:
+                    risk_data = get_okved_risks(selected_code)
+                    if risk_data:
+                        st.subheader(f"📍 {risk_data['name']}")
+                        st.markdown(f"**Особенности бизнеса:** {risk_data['features']}")
+                        st.markdown(f"**Типовые риски:** {risk_data['risks']}")
+                        st.markdown(f"**Пути минимизации:** {risk_data['mitigation']}")
+                    else:
+                        st.info("Аналитика временно недоступна.")
+            else:
+                st.warning("Файл ОКВЭД не найден. Поместите 'data-20260601T1406-structure-20180402T1704.csv' в папку.")
+
+    # ------------------ ПЛАВАЮЩИЙ ЧАТ ------------------
+    st.markdown("""
+    <style>
+    .floating-chat { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+    .stPopover button { width: 60px !important; height: 60px !important; border-radius: 50% !important; background-color: #FFD700 !important; color: black !important; font-size: 28px !important; display: flex !important; align-items: center !important; justify-content: center !important; border: none !important; box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important; }
+    .stPopover button:hover { transform: scale(1.05) !important; }
+    </style>
+    """, unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="floating-chat">', unsafe_allow_html=True)
+        with st.popover("💬", use_container_width=False):
+            st.markdown("### 💬 Аврора — ассистент")
+            inp = st.radio("Способ ввода", ["Текст", "Голос (60 сек)"], key="chat_inp")
+            if inp == "Текст":
+                msg = st.text_input("Ваш вопрос", key="chat_msg")
+                if msg:
+                    st.session_state.chat_messages.append(("user", msg))
+                    emb_m, emb_i, emb_f = load_assistant()
+                    ans = ask_aurora(msg, emb_m, emb_i, emb_f)
+                    st.session_state.chat_messages.append(("bot", ans))
+                    st.rerun()
+            else:
+                if st.button("🎤 Записать голос"):
+                    emb_m, emb_i, emb_f = load_assistant()
+                    txt = record_and_transcribe(60)
+                    if txt:
+                        st.session_state.chat_messages.append(("user", txt))
+                        ans = ask_aurora(txt, emb_m, emb_i, emb_f)
+                        st.session_state.chat_messages.append(("bot", ans))
+                        st.rerun()
+            for s, m in st.session_state.chat_messages[-10:]:
+                if s == "user":
+                    st.markdown(f"<div class='user-message'>{m}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div class='bot-message'>{m}</div>", unsafe_allow_html=True)
+            if st.button("Закрыть чат"):
+                st.session_state.chat_messages = []
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)

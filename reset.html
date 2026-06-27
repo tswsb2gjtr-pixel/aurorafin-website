@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сброс пароля</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f4ff; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); width: 400px; }
+        h1 { text-align: center; font-size: 24px; margin-bottom: 10px; color: #1a1a2e; }
+        p.sub { text-align: center; color: #888; margin-bottom: 30px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; color: #333; }
+        input { width: 100%; padding: 12px; border: 2px solid #e0e4f0; border-radius: 10px; margin-bottom: 20px; font-size: 16px; }
+        input:focus { border-color: #4a6cf7; outline: none; }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #4a6cf7, #3a5ad7); color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #3a5ad7; transform: scale(1.02); }
+        .links { text-align: center; margin-top: 20px; }
+        .links a { color: #4a6cf7; text-decoration: none; }
+        .links a:hover { text-decoration: underline; }
+        .message { text-align: center; color: green; font-size: 14px; margin-bottom: 10px; display: none; }
+        .error { text-align: center; color: red; font-size: 14px; margin-bottom: 10px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 Сброс пароля</h1>
+        <p class="sub" id="subMsg">Введите новый пароль</p>
+        <div id="error" class="error"></div>
+        <div id="message" class="message">Пароль успешно изменён!</div>
+        <form id="resetForm" onsubmit="return resetPassword(event)">
+            <label>Новый пароль</label>
+            <input type="password" id="newPassword" placeholder="Введите новый пароль" required>
+            <label>Подтвердите пароль</label>
+            <input type="password" id="confirmPassword" placeholder="Подтвердите пароль" required>
+            <button type="submit">Сохранить пароль</button>
+        </form>
+        <div class="links">
+            <a href="/login.html">← Вернуться к входу</a>
+        </div>
+    </div>
+
+    <script>
+        let token = null;
+        let username = null;
+
+        // При загрузке проверяем токен
+        window.addEventListener('load', function() {
+            const params = new URLSearchParams(window.location.search);
+            token = params.get('token');
+            if (!token) {
+                document.getElementById('error').textContent = 'Недействительная ссылка';
+                document.getElementById('error').style.display = 'block';
+                return;
+            }
+            // Проверяем токен на сервере
+            fetch('/verify_reset?token=' + encodeURIComponent(token))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.valid) {
+                        username = data.username;
+                        document.getElementById('subMsg').textContent = 'Сброс пароля для ' + username;
+                    } else {
+                        document.getElementById('error').textContent = data.message || 'Недействительный токен';
+                        document.getElementById('error').style.display = 'block';
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('error').textContent = 'Ошибка проверки токена';
+                    document.getElementById('error').style.display = 'block';
+                });
+        });
+
+        function resetPassword(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            const error = document.getElementById('error');
+            const message = document.getElementById('message');
+            error.style.display = 'none';
+            message.style.display = 'none';
+
+            if (newPass.length < 4) {
+                error.textContent = 'Пароль должен быть не менее 4 символов';
+                error.style.display = 'block';
+                return false;
+            }
+
+            if (newPass !== confirmPass) {
+                error.textContent = 'Пароли не совпадают';
+                error.style.display = 'block';
+                return false;
+            }
+
+            if (!token) {
+                error.textContent = 'Токен отсутствует';
+                error.style.display = 'block';
+                return false;
+            }
+
+            fetch('/reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: token, new_password: newPass })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    message.style.display = 'block';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                } else {
+                    error.textContent = data.message || 'Ошибка сброса';
+                    error.style.display = 'block';
+                }
+            })
+            .catch(err => {
+                error.textContent = 'Ошибка подключения к серверу';
+                error.style.display = 'block';
+                console.error(err);
+            });
+
+            return false;
+        }
+    </script>
+</body>
+</html>

@@ -15,18 +15,20 @@
         .container { max-width: 1200px; margin: 60px auto; padding: 0 20px; text-align: center; }
         .container h1 { font-size: 40px; margin-bottom: 10px; }
         .container p.sub { color: #5a5a7a; font-size: 18px; margin-bottom: 40px; }
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
-        .plan { background: white; border-radius: 24px; padding: 35px 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: transform 0.3s, box-shadow 0.3s; border: 2px solid transparent; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .plan { background: white; border-radius: 24px; padding: 35px 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: transform 0.3s, box-shadow 0.3s; border: 2px solid transparent; display: flex; flex-direction: column; }
         .plan:hover { transform: translateY(-6px); box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
         .plan.popular { border-color: #4a6cf7; background: #f8faff; }
         .plan .badge { display: inline-block; background: #4a6cf7; color: white; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px; }
         .plan h3 { font-size: 24px; margin-bottom: 8px; }
         .plan .price { font-size: 36px; font-weight: 700; color: #1a1a2e; margin: 10px 0; }
         .plan .price span { font-size: 18px; font-weight: 400; color: #888; }
-        .plan .period { font-size: 14px; color: #888; margin-top: -5px; margin-bottom: 20px; }
-        .plan ul { list-style: none; text-align: left; margin: 20px 0; padding: 0; }
+        .plan .period { font-size: 14px; color: #888; margin-bottom: 20px; }
+        .plan ul { list-style: none; text-align: left; margin: 20px 0; padding: 0; flex: 1; }
         .plan ul li { padding: 8px 0; border-bottom: 1px solid #f0f4ff; display: flex; align-items: center; font-size: 15px; }
-        .plan ul li::before { content: "✅"; margin-right: 10px; font-size: 16px; }
+        .plan ul li::before { content: "✅"; margin-right: 10px; font-size: 16px; flex-shrink: 0; }
+        .plan ul li.disabled { color: #aaa; }
+        .plan ul li.disabled::before { content: "❌"; }
         .plan .btn { display: inline-block; padding: 12px 32px; background: #4a6cf7; color: white; border-radius: 30px; text-decoration: none; font-weight: 600; transition: 0.3s; margin-top: 10px; }
         .plan .btn:hover { background: #3a5ad7; transform: scale(1.02); }
         .plan .btn-outline { background: transparent; color: #4a6cf7; border: 2px solid #4a6cf7; }
@@ -65,10 +67,15 @@
                 <div class="period">Навсегда бесплатно</div>
                 <ul>
                     <li>1 пользователь</li>
-                    <li>До 50 транзакций/мес</li>
+                    <li>До 50 транзакций в месяц</li>
+                    <li>Ручной ввод доходов/расходов</li>
                     <li>Базовая аналитика</li>
                     <li>Демо-доступ</li>
                     <li>Поддержка по email</li>
+                    <li class="disabled">Автоматическая выгрузка из банка</li>
+                    <li class="disabled">Прогноз кассовых разрывов</li>
+                    <li class="disabled">Экспорт в PDF</li>
+                    <li class="disabled">Мультивалютность</li>
                 </ul>
                 <a href="/login.html" class="btn btn-outline">Начать</a>
             </div>
@@ -82,10 +89,15 @@
                 <ul>
                     <li>До 5 пользователей</li>
                     <li>Безлимитные транзакции</li>
+                    <li>Ручной ввод</li>
                     <li>Автоматическая выгрузка из 1 банка</li>
+                    <li>Расширенная аналитика</li>
+                    <li>Прогноз кассовых разрывов</li>
                     <li>Экспорт в PDF</li>
                     <li>Приоритетная поддержка</li>
-                    <li>Прогноз кассовых разрывов</li>
+                    <li class="disabled">Мультивалютность</li>
+                    <li class="disabled">Экспорт в Excel</li>
+                    <li class="disabled">Персональный менеджер</li>
                 </ul>
                 <a href="/login.html" class="btn">Попробовать</a>
             </div>
@@ -97,12 +109,16 @@
                 <div class="period">Для растущих компаний</div>
                 <ul>
                     <li>До 20 пользователей</li>
-                    <li>Интеграция с 5+ банками</li>
+                    <li>Безлимитные транзакции</li>
+                    <li>Ручной ввод</li>
+                    <li>Автоматическая выгрузка из 5+ банков</li>
+                    <li>Полная аналитика + ML-категоризация</li>
+                    <li>Прогноз кассовых разрывов</li>
                     <li>Мультивалютность</li>
+                    <li>Экспорт в PDF и Excel</li>
+                    <li>Приоритетная поддержка 24/7</li>
                     <li>Персональный менеджер</li>
                     <li>Индивидуальные настройки</li>
-                    <li>Приоритетная поддержка 24/7</li>
-                    <li>Расширенная аналитика</li>
                 </ul>
                 <a href="/login.html" class="btn">Попробовать</a>
             </div>

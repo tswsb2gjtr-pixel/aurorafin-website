@@ -4,106 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход — Aurora Fin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; margin: 0; }
-        .login-container { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 40px 35px; border-radius: 32px; box-shadow: 0 20px 60px rgba(74, 108, 247, 0.15); max-width: 460px; width: 100%; border: 1px solid rgba(255,255,255,0.3); transition: transform 0.3s ease, box-shadow 0.3s ease; animation: fadeInUp 0.6s ease-out; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .login-container:hover { transform: translateY(-2px); box-shadow: 0 25px 70px rgba(74, 108, 247, 0.2); }
-        .logo-area { text-align: center; margin-bottom: 30px; }
-        .logo-area h1 { font-size: 28px; font-weight: 700; color: #1a1a2e; margin-top: 0; letter-spacing: -0.5px; }
-        .logo-area h1 span { color: #4a6cf7; }
-        .sub { text-align: center; color: #6b7280; font-size: 15px; margin-top: 4px; font-weight: 400; }
-        .lang-select { display: block; margin: 0 auto 25px; padding: 8px 16px; border-radius: 30px; border: 2px solid #e5e7eb; background: white; font-size: 14px; cursor: pointer; width: fit-content; transition: border-color 0.2s; font-weight: 500; }
-        .lang-select:focus { border-color: #4a6cf7; outline: none; }
-        .error, .success { font-size: 14px; text-align: center; padding: 10px 12px; border-radius: 12px; margin-bottom: 16px; display: none; animation: shake 0.3s ease; }
-        @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
-        .error { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
-        .success { background: #dcfce7; color: #166534; border-left: 4px solid #22c55e; }
-        label { display: block; font-weight: 600; font-size: 14px; color: #374151; margin-bottom: 5px; }
-        .input-group { position: relative; margin-bottom: 18px; }
-        .input-group input, .input-group select { width: 100%; padding: 12px 16px 12px 44px; border: 2px solid #e5e7eb; border-radius: 16px; font-size: 16px; background: white; transition: border-color 0.2s, box-shadow 0.2s; font-weight: 400; }
-        .input-group input:focus, .input-group select:focus { border-color: #4a6cf7; box-shadow: 0 0 0 4px rgba(74,108,247,0.1); outline: none; }
-        .input-group .icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 18px; pointer-events: none; }
-        .remember-container { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 18px; }
-        .remember-container label { display: flex; align-items: center; gap: 8px; font-weight: 400; font-size: 14px; color: #4b5563; cursor: pointer; }
-        .remember-container input[type="checkbox"] { width: 18px; height: 18px; accent-color: #4a6cf7; cursor: pointer; }
-        .forgot-link { text-align: right; }
-        .forgot-link a { color: #6b7280; font-size: 13px; text-decoration: none; }
-        .forgot-link a:hover { color: #4a6cf7; text-decoration: underline; }
-        .captcha-container { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .captcha-container span { font-size: 22px; font-weight: 700; background: #f3f4f6; padding: 10px 18px; border-radius: 16px; color: #1f2937; font-family: 'Courier New', monospace; letter-spacing: 1px; flex: 1; text-align: center; }
-        .captcha-refresh { background: none; border: none; font-size: 24px; cursor: pointer; padding: 0 8px; color: #6b7280; transition: transform 0.2s; }
-        .captcha-refresh:hover { transform: rotate(90deg); color: #4a6cf7; }
-        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #4a6cf7, #3a5ad7); color: white; border: none; border-radius: 30px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 6px; box-shadow: 0 4px 15px rgba(74,108,247,0.35); }
-        .btn:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 8px 25px rgba(74,108,247,0.45); }
-        .btn:active { transform: scale(0.98); }
-        .btn-register { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 4px 15px rgba(34,197,94,0.35); margin-top: 0; }
-        .btn-register:hover { box-shadow: 0 8px 25px rgba(34,197,94,0.45); }
-        .form-toggle { text-align: center; margin: 18px 0 8px; font-size: 14px; color: #6b7280; }
-        .form-toggle a { color: #4a6cf7; font-weight: 600; cursor: pointer; text-decoration: none; }
-        .form-toggle a:hover { text-decoration: underline; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #000000; color: #FFFFFF; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px; }
+        .login-container { max-width: 400px; width: 100%; }
+        .logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; color: #FFFFFF; margin-bottom: 32px; text-align: center; }
+        .logo span { color: #4F55F1; }
+        .form-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+        .form-sub { color: rgba(255,255,255,0.5); font-size: 14px; margin-bottom: 32px; text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
+        .form-group input, .form-group select { width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #FFFFFF; font-size: 16px; transition: 0.2s; font-family: 'Inter', sans-serif; }
+        .form-group input:focus { border-color: #4F55F1; outline: none; background: rgba(255,255,255,0.08); }
+        .form-group select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.5)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; }
+        .form-group select option { background: #1a1a1a; color: #FFFFFF; }
+        .checkbox-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .checkbox-group label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255,255,255,0.6); cursor: pointer; }
+        .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: #4F55F1; background: transparent; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; }
+        .checkbox-group a { color: rgba(255,255,255,0.4); font-size: 14px; text-decoration: none; transition: 0.2s; }
+        .checkbox-group a:hover { color: #4F55F1; }
+        .captcha-container { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .captcha-container span { font-size: 20px; font-weight: 700; background: rgba(255,255,255,0.06); padding: 10px 16px; border-radius: 12px; color: #4F55F1; font-family: 'Courier New', monospace; flex: 1; text-align: center; }
+        .captcha-refresh { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 22px; cursor: pointer; transition: 0.2s; }
+        .captcha-refresh:hover { color: #4F55F1; transform: rotate(90deg); }
+        .btn { width: 100%; padding: 16px; background: #4F55F1; color: #FFFFFF; border: none; border-radius: 40px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: 'Inter', sans-serif; }
+        .btn:hover { background: #3a40d1; transform: translateY(-2px); }
+        .btn-register { background: transparent; color: #4F55F1; border: 2px solid rgba(79,85,241,0.3); margin-top: 12px; }
+        .btn-register:hover { background: rgba(79,85,241,0.1); transform: translateY(-2px); }
+        .toggle-link { text-align: center; margin: 20px 0; color: rgba(255,255,255,0.4); font-size: 14px; }
+        .toggle-link a { color: #4F55F1; text-decoration: none; font-weight: 600; cursor: pointer; }
+        .toggle-link a:hover { text-decoration: underline; }
+        .back-link { display: block; text-align: center; margin-top: 24px; color: rgba(255,255,255,0.3); text-decoration: none; font-size: 14px; transition: 0.2s; }
+        .back-link:hover { color: rgba(255,255,255,0.6); }
         .hidden { display: none !important; }
-        .register-fields { border-top: 1px solid #e5e7eb; padding-top: 12px; margin-top: 4px; }
-        .register-fields .input-group { margin-bottom: 8px; }
-        .register-fields .input-group input, .register-fields .input-group select { padding: 8px 12px 8px 36px; font-size: 14px; }
-        .register-fields .input-group .icon { font-size: 15px; }
-        .links { text-align: center; margin-top: 20px; }
-        .links a { color: #6b7280; text-decoration: none; font-size: 14px; transition: color 0.2s; }
-        .links a:hover { color: #4a6cf7; text-decoration: underline; }
-        @media (max-width: 480px) { .login-container { padding: 30px 20px; border-radius: 24px; } .logo-area h1 { font-size: 22px; } .input-group input { font-size: 15px; padding: 12px 14px 12px 40px; } }
+        .register-fields { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; margin-top: 8px; }
+        .error, .success { font-size: 14px; text-align: center; padding: 10px 12px; border-radius: 12px; margin-bottom: 16px; display: none; }
+        .error { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+        .success { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+        @media (max-width: 480px) { .login-container { padding: 0 16px; } }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <div class="logo-area">
-            <h1>Aurora<span>Fin</span></h1>
-        </div>
-        <select class="lang-select" id="langSelect" onchange="setLang(this.value)">
-            <option value="ru">🇷🇺 Русский</option>
-            <option value="en">🇬🇧 English</option>
-            <option value="es">🇪🇸 Español</option>
-            <option value="fr">🇫🇷 Français</option>
-            <option value="de">🇩🇪 Deutsch</option>
-            <option value="pt">🇵🇹 Português</option>
-            <option value="zh">🇨🇳 中文</option>
-            <option value="ja">🇯🇵 日本語</option>
-            <option value="ar">🇸🇦 العربية</option>
-            <option value="it">🇮🇹 Italiano</option>
-            <option value="sw">🇹🇿 Kiswahili</option>
-            <option value="id">🇮🇩 Bahasa Indonesia</option>
-            <option value="hi">🇮🇳 हिन्दी</option>
-            <option value="tr">🇹🇷 Türkçe</option>
-            <option value="uk">🇺🇦 Українська</option>
-            <option value="kk">🇰🇿 Қазақша</option>
-            <option value="uz">🇺🇿 Oʻzbekcha</option>
-        </select>
-        <p class="sub" id="formTitle">Войдите в личный кабинет</p>
+        <div class="logo">Aurora<span>Fin</span></div>
+        <div class="form-title" id="formTitle">Вход в аккаунт</div>
+        <div class="form-sub" id="formSub">Войдите, чтобы продолжить</div>
+
         <div id="error" class="error">Неверный логин или пароль</div>
         <div id="success" class="success">Регистрация успешна! Теперь войдите.</div>
+
         <form id="loginForm" onsubmit="return login(event)">
             <div id="loginFields">
-                <div class="input-group"><span class="icon">👤</span><input type="text" id="username" placeholder="Введите ИНН" required></div>
-                <div class="input-group"><span class="icon">🔒</span><input type="password" id="password" placeholder="Введите пароль" required></div>
-                <div class="remember-container">
+                <div class="form-group">
+                    <label id="label_username">Логин (ИНН)</label>
+                    <input type="text" id="username" placeholder="Введите ИНН" required>
+                </div>
+                <div class="form-group">
+                    <label id="label_password">Пароль</label>
+                    <input type="password" id="password" placeholder="Введите пароль" required>
+                </div>
+                <div class="checkbox-group">
                     <label><input type="checkbox" id="remember" checked> <span id="remember_text">Запомнить меня</span></label>
-                    <div class="forgot-link"><a href="/forgot.html" id="forgot_link">Забыли пароль?</a></div>
+                    <a href="/forgot.html" id="forgot_link">Забыли пароль?</a>
                 </div>
                 <div id="captchaBlock">
-                    <label id="captcha_label">Введите результат</label>
-                    <div class="captcha-container"><span id="captchaQuestion">Загрузка...</span><button type="button" class="captcha-refresh" onclick="refreshCaptcha()">⟳</button></div>
-                    <div class="input-group"><span class="icon">✏️</span><input type="text" id="captchaInput" placeholder="Введите ответ" required></div>
+                    <label id="captcha_label" style="font-size:14px; color:rgba(255,255,255,0.7);">Введите результат</label>
+                    <div class="captcha-container">
+                        <span id="captchaQuestion">Загрузка...</span>
+                        <button type="button" class="captcha-refresh" onclick="refreshCaptcha()">⟳</button>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="captchaInput" placeholder="Введите ответ" required>
+                    </div>
                 </div>
             </div>
-            <!-- Регистрационные поля -->
+
             <div id="registerFields" class="register-fields hidden">
-                <div class="input-group"><span class="icon">🏢</span><input type="text" id="company" placeholder="Наименование компании"></div>
-                <div class="input-group"><span class="icon">👤</span><input type="text" id="fullname" placeholder="Имя"></div>
-                <div class="input-group"><span class="icon">🆔</span><input type="text" id="username_reg" placeholder="ИНН (логин)"></div>
-                <div class="input-group"><span class="icon">✉️</span><input type="email" id="email" placeholder="Электронная почта"></div>
-                <div class="input-group"><span class="icon">🔐</span><input type="password" id="password_reg" placeholder="Пароль"></div>
-                <div class="input-group"><span class="icon">🔐</span><input type="password" id="password2_reg" placeholder="Повторите пароль"></div>
-                <div class="input-group"><span class="icon">🎯</span>
+                <div class="form-group"><label id="label_fullname">Полное имя</label><input type="text" id="fullname" placeholder="Введите полное имя"></div>
+                <div class="form-group"><label id="label_company">Компания</label><input type="text" id="company" placeholder="Наименование компании"></div>
+                <div class="form-group"><label id="label_email">Email</label><input type="email" id="email" placeholder="Введите email"></div>
+                <div class="form-group"><label id="label_password2">Повторите пароль</label><input type="password" id="password2" placeholder="Повторите пароль"></div>
+                <div class="form-group"><label id="label_role">Роль</label>
                     <select id="role">
                         <option value="owner">Владелец</option>
                         <option value="director">Директор</option>
@@ -111,57 +94,27 @@
                     </select>
                 </div>
             </div>
+
             <button type="submit" id="submitBtn" class="btn">Войти</button>
         </form>
-        <div class="form-toggle"><span id="toggleText">Нет аккаунта?</span> <a id="toggleLink" onclick="toggleForm()">Зарегистрироваться</a></div>
-        <button class="btn btn-register" id="registerBtn" onclick="register()" style="display:none;">📝 Зарегистрироваться</button>
-        <div class="links"><a href="/" id="back_link">← На главную</a></div>
-    </div>
-    <script>
-        // --- ПОЛНЫЙ JAVASCRIPT с обновлённой регистрацией ---
-        const loginTranslations = {
-            ru: { header: "🔐 Aurora Fin", sub: "Войдите в личный кабинет", login_label: "ИНН", password_label: "Пароль", login_btn: "Войти", register_btn: "📝 Зарегистрироваться", toggle_text: "Нет аккаунта?", toggle_link: "Зарегистрироваться", back: "← На главную", error_default: "Неверный логин или пароль", success_msg: "Регистрация успешна! Теперь войдите.", register_sub: "Создайте аккаунт", company_label: "Наименование компании", fullname_label: "Имя", inn_label: "ИНН (логин)", email_label: "Электронная почта", password_label_reg: "Пароль", password2_label: "Повторите пароль", role_label: "Роль", role_owner: "Владелец", role_director: "Директор", role_employee: "Сотрудник", required_fields: "Заполните все поля", inn_error: "ИНН должен содержать 10 или 12 цифр", password_short: "Пароль должен быть не менее 4 символов", password_mismatch: "Пароли не совпадают", user_exists: "Пользователь с таким ИНН уже существует", remember: "Запомнить меня", captcha_label: "Введите результат", captcha_placeholder: "Введите ответ", captcha_error: "Неверная капча" },
-            en: { header: "🔐 Aurora Fin", sub: "Log in to your account", login_label: "Tax ID", password_label: "Password", login_btn: "Login", register_btn: "📝 Register", toggle_text: "No account?", toggle_link: "Register", back: "← Back to home", error_default: "Invalid login or password", success_msg: "Registration successful! Please log in.", register_sub: "Create an account", company_label: "Company name", fullname_label: "Name", inn_label: "Tax ID (login)", email_label: "Email", password_label_reg: "Password", password2_label: "Repeat password", role_label: "Role", role_owner: "Owner", role_director: "Director", role_employee: "Employee", required_fields: "Please fill in all fields", inn_error: "Tax ID must be 10 or 12 digits", password_short: "Password must be at least 4 characters", password_mismatch: "Passwords do not match", user_exists: "User with this Tax ID already exists", remember: "Remember me", captcha_label: "Enter result", captcha_placeholder: "Enter answer", captcha_error: "Invalid captcha" }
-        };
-        // Копируем переводы для других языков (используем en как fallback)
-        ['es','fr','de','pt','zh','ja','ar','it','sw','id','hi','tr','uk','kk','uz'].forEach(k => { if(!loginTranslations[k]) loginTranslations[k] = loginTranslations.en; });
 
+        <button class="btn btn-register" id="registerBtn" onclick="register()" style="display:none;">📝 Зарегистрироваться</button>
+
+        <div class="toggle-link">
+            <span id="toggleText">Нет аккаунта?</span>
+            <a id="toggleLink" onclick="toggleForm()">Зарегистрироваться</a>
+        </div>
+
+        <a href="/" class="back-link">← На главную</a>
+    </div>
+
+    <script>
+        // --- ПОЛНЫЙ JAVASCRIPT (ВХОД, РЕГИСТРАЦИЯ, КАПЧА, ЗАПОМНИТЬ МЕНЯ) ---
         let users = JSON.parse(localStorage.getItem('users')) || {};
         let isRegisterMode = false;
         let savedLang = localStorage.getItem('lang') || 'ru';
 
-        function setLang(lang) { localStorage.setItem('lang', lang); savedLang = lang; applyLoginLanguage(lang); if(lang==='ar') document.documentElement.dir='rtl'; else document.documentElement.dir='ltr'; }
-
-        function applyLoginLanguage(lang) {
-            const t = loginTranslations[lang] || loginTranslations.en;
-            document.getElementById('login_header').textContent = t.header;
-            document.getElementById('formTitle').textContent = t.sub;
-            document.getElementById('label_username').textContent = t.login_label;
-            document.getElementById('label_password').textContent = t.password_label;
-            document.getElementById('submitBtn').textContent = t.login_btn;
-            document.getElementById('registerBtn').textContent = t.register_btn;
-            document.getElementById('toggleText').textContent = t.toggle_text;
-            document.getElementById('toggleLink').textContent = t.toggle_link;
-            document.getElementById('back_link').textContent = t.back;
-            document.getElementById('error').textContent = t.error_default;
-            document.getElementById('success').textContent = t.success_msg;
-            // Поля регистрации
-            document.querySelector('#registerFields .input-group:nth-child(1) input').placeholder = t.company_label;
-            document.querySelector('#registerFields .input-group:nth-child(2) input').placeholder = t.fullname_label;
-            document.querySelector('#registerFields .input-group:nth-child(3) input').placeholder = t.inn_label;
-            document.querySelector('#registerFields .input-group:nth-child(4) input').placeholder = t.email_label;
-            document.querySelector('#registerFields .input-group:nth-child(5) input').placeholder = t.password_label_reg;
-            document.querySelector('#registerFields .input-group:nth-child(6) input').placeholder = t.password2_label;
-            document.querySelector('#registerFields .input-group:nth-child(7) select option[value="owner"]').textContent = t.role_owner;
-            document.querySelector('#registerFields .input-group:nth-child(7) select option[value="director"]').textContent = t.role_director;
-            document.querySelector('#registerFields .input-group:nth-child(7) select option[value="employee"]').textContent = t.role_employee;
-            document.getElementById('remember_text').textContent = t.remember;
-            document.querySelector('#captchaBlock label').textContent = t.captcha_label || 'Введите результат';
-            document.querySelector('#captchaInput').placeholder = t.captcha_placeholder || 'Введите ответ';
-            document.querySelector('#username').placeholder = t.login_label;
-            document.querySelector('#password').placeholder = t.password_label;
-        }
-
+        // Капча
         function refreshCaptcha() {
             fetch('/captcha')
                 .then(response => response.json())
@@ -174,18 +127,20 @@
             isRegisterMode = !isRegisterMode;
             const reg = document.getElementById('registerFields'), login = document.getElementById('loginFields');
             const s = document.getElementById('submitBtn'), r = document.getElementById('registerBtn');
-            const tl = document.getElementById('toggleLink'), tt = document.getElementById('toggleText'), ft = document.getElementById('formTitle');
+            const tl = document.getElementById('toggleLink'), tt = document.getElementById('toggleText'), ft = document.getElementById('formTitle'), fs = document.getElementById('formSub');
             if (isRegisterMode) {
                 reg.classList.remove('hidden'); login.style.display = 'none'; s.style.display = 'none'; r.style.display = 'block';
-                tl.textContent = loginTranslations[savedLang]?.toggle_link || 'Войти';
-                tt.textContent = loginTranslations[savedLang]?.already_logged || 'Уже есть аккаунт?';
-                ft.textContent = loginTranslations[savedLang]?.register_sub || 'Создайте аккаунт';
+                tl.textContent = 'Войти';
+                tt.textContent = 'Уже есть аккаунт?';
+                ft.textContent = 'Создайте аккаунт';
+                fs.textContent = 'Заполните данные для регистрации';
                 document.getElementById('error').style.display = 'none'; document.getElementById('success').style.display = 'none';
             } else {
                 reg.classList.add('hidden'); login.style.display = 'block'; s.style.display = 'block'; r.style.display = 'none';
-                tl.textContent = loginTranslations[savedLang]?.toggle_link || 'Зарегистрироваться';
-                tt.textContent = loginTranslations[savedLang]?.toggle_text || 'Нет аккаунта?';
-                ft.textContent = loginTranslations[savedLang]?.sub || 'Войдите в личный кабинет';
+                tl.textContent = 'Зарегистрироваться';
+                tt.textContent = 'Нет аккаунта?';
+                ft.textContent = 'Вход в аккаунт';
+                fs.textContent = 'Войдите, чтобы продолжить';
             }
         }
 
@@ -195,80 +150,43 @@
             const r = document.getElementById('remember').checked, c = document.getElementById('captchaInput').value.trim();
             const err = document.getElementById('error'), suc = document.getElementById('success');
             err.style.display = 'none'; suc.style.display = 'none';
-            if (!u || !p || !c) { err.textContent = loginTranslations[savedLang]?.required_fields || 'Заполните все поля'; err.style.display = 'block'; return false; }
+            if (!u || !p || !c) { err.textContent = 'Заполните все поля'; err.style.display = 'block'; return false; }
             fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username:u, password:p, remember:r, captcha:c }) })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) { localStorage.setItem('loggedIn','true'); localStorage.setItem('username',u); window.location.href = '/run_aurora_direct'; }
-                    else { err.textContent = data.message || loginTranslations[savedLang]?.error_default || 'Неверный логин или пароль'; err.style.display = 'block'; refreshCaptcha(); document.getElementById('captchaInput').value = ''; }
+                    else { err.textContent = data.message || 'Неверный логин или пароль'; err.style.display = 'block'; refreshCaptcha(); document.getElementById('captchaInput').value = ''; }
                 })
                 .catch(() => { err.textContent = 'Ошибка подключения к серверу'; err.style.display = 'block'; });
             return false;
         }
 
         function register() {
-            const company = document.getElementById('company').value.trim();
-            const fullname = document.getElementById('fullname').value.trim();
-            const username = document.getElementById('username_reg').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password_reg').value;
-            const password2 = document.getElementById('password2_reg').value;
-            const role = document.getElementById('role').value;
-            const err = document.getElementById('error');
-            const suc = document.getElementById('success');
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value;
+            const p2 = document.getElementById('password2').value;
+            const f = document.getElementById('fullname').value.trim();
+            const c = document.getElementById('company').value.trim();
+            const e = document.getElementById('email').value.trim();
+            const r = document.getElementById('role').value;
+            const err = document.getElementById('error'), suc = document.getElementById('success');
             err.style.display = 'none'; suc.style.display = 'none';
-
-            if (!company || !fullname || !username || !email || !password || !password2) {
-                err.textContent = loginTranslations[savedLang]?.required_fields || 'Заполните все поля';
-                err.style.display = 'block';
-                return;
-            }
-            if (username.length < 10 || username.length > 12) {
-                err.textContent = loginTranslations[savedLang]?.inn_error || 'ИНН должен содержать 10 или 12 цифр';
-                err.style.display = 'block';
-                return;
-            }
-            if (password.length < 4) {
-                err.textContent = loginTranslations[savedLang]?.password_short || 'Пароль должен быть не менее 4 символов';
-                err.style.display = 'block';
-                return;
-            }
-            if (password !== password2) {
-                err.textContent = loginTranslations[savedLang]?.password_mismatch || 'Пароли не совпадают';
-                err.style.display = 'block';
-                return;
-            }
-            if (users[username]) {
-                err.textContent = loginTranslations[savedLang]?.user_exists || 'Пользователь с таким ИНН уже существует';
-                err.style.display = 'block';
-                return;
-            }
-            users[username] = {
-                password: password,
-                company: company,
-                fullname: fullname,
-                email: email,
-                role: role
-            };
+            if (!u || !p || !p2 || !f || !c || !e) { err.textContent = 'Заполните все поля'; err.style.display = 'block'; return; }
+            if (u.length < 10 || u.length > 12) { err.textContent = 'ИНН должен содержать 10 или 12 цифр'; err.style.display = 'block'; return; }
+            if (p.length < 4) { err.textContent = 'Пароль должен быть не менее 4 символов'; err.style.display = 'block'; return; }
+            if (p !== p2) { err.textContent = 'Пароли не совпадают'; err.style.display = 'block'; return; }
+            if (users[u]) { err.textContent = 'Пользователь с таким ИНН уже существует'; err.style.display = 'block'; return; }
+            users[u] = { password: p, fullname: f, company: c, email: e, role: r };
             localStorage.setItem('users', JSON.stringify(users));
             suc.style.display = 'block';
-            document.getElementById('company').value = '';
-            document.getElementById('fullname').value = '';
-            document.getElementById('username_reg').value = '';
-            document.getElementById('email').value = '';
-            document.getElementById('password_reg').value = '';
-            document.getElementById('password2_reg').value = '';
-            setTimeout(() => {
-                if (isRegisterMode) toggleForm();
-                suc.style.display = 'none';
-            }, 1500);
+            document.getElementById('username').value = ''; document.getElementById('password').value = ''; document.getElementById('password2').value = ''; document.getElementById('fullname').value = ''; document.getElementById('company').value = ''; document.getElementById('email').value = '';
+            setTimeout(() => { if (isRegisterMode) toggleForm(); suc.style.display = 'none'; }, 1500);
         }
 
-        // Инициализация
-        document.getElementById('langSelect').value = savedLang;
-        applyLoginLanguage(savedLang);
-        if (savedLang === 'ar') document.documentElement.dir = 'rtl';
-        if (localStorage.getItem('loggedIn') === 'true') window.location.href = '/run_aurora_direct';
+        // Автоматический вход, если уже залогинены
+        if (localStorage.getItem('loggedIn') === 'true') {
+            window.location.href = '/run_aurora_direct';
+        }
     </script>
 </body>
 </html>

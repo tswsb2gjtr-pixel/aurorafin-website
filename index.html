@@ -3,535 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurora Fin — умный учёт финансов</title>
+    <title>Aurora Fin — ИИ-прогнозирование кассовых разрывов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { background: #f0f4ff; color: #1a1a2e; }
-        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 24px; font-weight: 700; color: #1a1a2e; }
-        .logo span { color: #4a6cf7; }
-        nav a { margin-left: 30px; text-decoration: none; color: #4a4a6a; font-weight: 500; transition: 0.2s; }
-        nav a:hover { color: #4a6cf7; }
-        .lang-select { margin-left: 20px; padding: 6px 12px; border-radius: 8px; border: 2px solid #e0e4f0; background: white; font-size: 14px; cursor: pointer; }
-        .lang-select:focus { border-color: #4a6cf7; outline: none; }
-        .hero { display: flex; align-items: center; justify-content: center; padding: 80px 60px; max-width: 1200px; margin: 0 auto; text-align: center; }
-        .hero-text h1 { font-size: 48px; font-weight: 800; line-height: 1.2; margin-bottom: 20px; }
-        .hero-text p { font-size: 18px; color: #5a5a7a; max-width: 600px; margin: 0 auto 20px; }
-        #features { padding: 80px 60px; background: white; text-align: center; }
-        #features h2 { font-size: 36px; margin-bottom: 50px; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
-        .feature { background: #f8faff; padding: 30px; border-radius: 16px; transition: 0.3s; }
-        .feature:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(74,108,247,0.1); }
-        .feature span { font-size: 40px; }
-        .feature h3 { margin: 16px 0 8px; font-size: 20px; }
-        .feature p { color: #5a5a7a; font-size: 15px; line-height: 1.5; }
-        #about { padding: 80px 60px; text-align: center; max-width: 800px; margin: 0 auto; }
-        #about h2 { font-size: 36px; margin-bottom: 30px; }
-        #about p { font-size: 18px; color: #5a5a7a; line-height: 1.8; }
-        #contact { padding: 60px 60px; text-align: center; background: white; }
-        #contact h2 { font-size: 36px; margin-bottom: 30px; }
-        #contact p { font-size: 18px; color: #5a5a7a; }
-        #contact a { color: #4a6cf7; text-decoration: none; }
-        #contact a:hover { text-decoration: underline; }
-        footer { text-align: center; padding: 40px 60px; background: #1a1a2e; color: #a0a0c0; }
-        footer a { color: #a0a0c0; text-decoration: none; margin: 0 16px; }
-        footer a:hover { color: #4a6cf7; }
-        .btn-login { background: #4a6cf7; color: white !important; padding: 8px 20px; border-radius: 30px; font-weight: 600; text-decoration: none; margin-left: 20px; }
-        .btn-login:hover { background: #3a5ad7; }
-        .fade-in { opacity: 0; animation: fadeIn 1s ease-in forwards; }
-        .fade-in-delay-1 { animation-delay: 0.2s; }
-        .fade-in-delay-2 { animation-delay: 0.4s; }
-        .fade-in-delay-3 { animation-delay: 0.6s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #000000; color: #FFFFFF; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+        header { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; color: #FFFFFF; display: flex; align-items: center; gap: 12px; }
+        .logo span { color: #4F55F1; }
+        .ai-badge { display: inline-block; background: rgba(79,85,241,0.15); color: #4F55F1; font-size: 12px; font-weight: 700; padding: 2px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 4px; }
+        nav { display: flex; align-items: center; gap: 32px; }
+        nav a { text-decoration: none; color: rgba(255,255,255,0.7); font-weight: 500; font-size: 15px; transition: 0.2s; }
+        nav a:hover { color: #FFFFFF; }
+        .btn-outline { border: 2px solid rgba(255,255,255,0.2); color: #FFFFFF; padding: 10px 28px; border-radius: 40px; font-weight: 600; background: transparent; transition: 0.3s; }
+        .btn-outline:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.4); }
+
+        .hero { padding: 80px 0 60px; display: flex; align-items: center; max-width: 800px; margin: 0 auto; }
+        .hero-text { flex: 1; }
+        .hero-text .ai-tag { display: inline-block; background: rgba(79,85,241,0.15); color: #4F55F1; font-size: 12px; font-weight: 700; padding: 4px 16px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .hero-text h1 { font-size: 52px; font-weight: 900; line-height: 1.05; letter-spacing: -1.5px; color: #FFFFFF; }
+        .hero-text h1 .highlight { color: #4F55F1; }
+        .hero-text .sub { font-size: 18px; color: rgba(255,255,255,0.6); margin: 24px 0 32px; max-width: 480px; line-height: 1.7; }
+        .hero-text .sub strong { color: #4F55F1; font-weight: 600; }
+        .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+        .btn-primary { background: #4F55F1; color: #FFFFFF; padding: 16px 40px; border-radius: 40px; font-weight: 600; text-decoration: none; display: inline-block; transition: 0.3s; font-size: 16px; }
+        .btn-primary:hover { background: #3a40d1; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #FFFFFF; padding: 16px 40px; border-radius: 40px; font-weight: 600; text-decoration: none; display: inline-block; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+
+        .features { padding: 80px 0; }
+        .features h2 { text-align: center; font-size: 40px; font-weight: 800; color: #FFFFFF; margin-bottom: 16px; }
+        .features .sub { text-align: center; color: rgba(255,255,255,0.5); font-size: 18px; max-width: 600px; margin: 0 auto 56px; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+        .feature-card { background: rgba(255,255,255,0.04); padding: 32px 28px; border-radius: 24px; transition: 0.3s; border: 1px solid rgba(255,255,255,0.06); text-align: left; }
+        .feature-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(79,85,241,0.3); transform: translateY(-4px); }
+        .feature-card .icon { font-size: 40px; display: block; margin-bottom: 16px; }
+        .feature-card .ai-chip { display: inline-block; background: rgba(79,85,241,0.15); color: #4F55F1; font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 4px; }
+        .feature-card h3 { font-size: 20px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px; }
+        .feature-card p { color: rgba(255,255,255,0.5); font-size: 15px; line-height: 1.6; }
+
+        .pricing { padding: 80px 0; background: rgba(255,255,255,0.02); }
+        .pricing h2 { text-align: center; font-size: 40px; font-weight: 800; color: #FFFFFF; margin-bottom: 16px; }
+        .pricing .sub { text-align: center; color: rgba(255,255,255,0.5); font-size: 18px; max-width: 600px; margin: 0 auto 56px; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .pricing-card { background: rgba(255,255,255,0.04); padding: 36px 32px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.06); transition: 0.3s; text-align: left; }
+        .pricing-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-4px); }
+        .pricing-card.popular { border-color: #4F55F1; background: rgba(79,85,241,0.08); }
+        .pricing-card .badge { display: inline-block; background: #4F55F1; color: #FFFFFF; font-size: 11px; font-weight: 700; padding: 4px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .pricing-card h3 { font-size: 24px; font-weight: 700; color: #FFFFFF; }
+        .pricing-card .price { font-size: 40px; font-weight: 800; color: #FFFFFF; margin: 12px 0 4px; }
+        .pricing-card .price span { font-size: 16px; font-weight: 400; color: rgba(255,255,255,0.4); }
+        .pricing-card .period { color: rgba(255,255,255,0.3); font-size: 14px; margin-bottom: 24px; }
+        .pricing-card ul { list-style: none; margin: 24px 0 32px; }
+        .pricing-card ul li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: center; gap: 10px; font-size: 15px; color: rgba(255,255,255,0.7); }
+        .pricing-card ul li::before { content: "✓"; color: #4F55F1; font-weight: 700; font-size: 18px; }
+        .pricing-card .btn { display: inline-block; padding: 14px 32px; border-radius: 40px; font-weight: 600; text-decoration: none; transition: 0.3s; text-align: center; width: 100%; font-size: 16px; }
+        .btn-primary-card { background: #4F55F1; color: #FFFFFF; }
+        .btn-primary-card:hover { background: #3a40d1; transform: translateY(-2px); }
+        .btn-outline-card { background: transparent; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.2); }
+        .btn-outline-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.4); }
+
+        footer { padding: 40px 0; text-align: center; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 40px; }
+        footer p { color: rgba(255,255,255,0.3); font-size: 14px; }
+        footer a { color: rgba(255,255,255,0.4); text-decoration: none; margin: 0 12px; font-size: 14px; transition: 0.2s; }
+        footer a:hover { color: rgba(255,255,255,0.7); }
+
         @media (max-width: 768px) {
-            header { flex-direction: column; padding: 15px; }
-            .logo { font-size: 20px; }
-            nav { flex-wrap: wrap; justify-content: center; gap: 10px; }
-            nav a { margin: 0 8px; font-size: 14px; }
-            .lang-select { margin-left: 0; margin-top: 10px; }
-            .hero { padding: 30px 15px; }
-            .hero-text h1 { font-size: 28px; }
-            .hero-text p { font-size: 16px; }
-            #features, #about, #contact { padding: 30px 15px; }
-            #features h2, #about h2, #contact h2 { font-size: 28px; }
-            .features-grid { grid-template-columns: 1fr; gap: 15px; }
-            .feature { padding: 20px; }
-            .feature span { font-size: 32px; }
-            .feature h3 { font-size: 18px; }
-            footer { padding: 20px 15px; }
-            footer a { display: block; margin: 6px 0; }
+            .hero { flex-direction: column; text-align: center; padding: 40px 0; }
+            .hero-text h1 { font-size: 32px; }
+            .hero-text .sub { max-width: 100%; }
+            .hero-buttons { justify-content: center; }
+            nav { gap: 16px; flex-wrap: wrap; justify-content: center; }
+            nav a { font-size: 14px; }
+            .features h2, .pricing h2 { font-size: 28px; }
+            .pricing-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">Aurora<span>Fin</span></div>
-        <nav>
-            <a href="/pricing.html">Тарифы</a>
+    <div class="container">
+        <header>
+            <div class="logo">
+                Aurora<span>Fin</span>
+                
+            </div>
+            <nav>
+                <a href="#features">Возможности</a>
+                <a href="#pricing">Тарифы</a>
+                <a href="/login.html" class="btn-outline">Войти</a>
+            </nav>
+        </header>
 
-            <a href="#features" id="nav_features">Возможности</a>
-            <a href="#about" id="nav_about">О нас</a>
-            <a href="#contact" id="nav_contact">Контакты</a>
-            <a href="/login.html" class="btn-login" id="nav_login">Войти</a>
-            <select class="lang-select" id="langSelect" onchange="setLang(this.value)">
-                <option value="ru">🇷🇺 Русский</option>
-                <option value="en">🇬🇧 English</option>
-                <option value="es">🇪🇸 Español</option>
-                <option value="fr">🇫🇷 Français</option>
-                <option value="de">🇩🇪 Deutsch</option>
-                <option value="pt">🇵🇹 Português</option>
-                <option value="zh">🇨🇳 中文</option>
-                <option value="ja">🇯🇵 日本語</option>
-                <option value="ar">🇸🇦 العربية</option>
-                <option value="it">🇮🇹 Italiano</option>
-                <option value="sw">🇹🇿 Kiswahili</option>
-                <option value="id">🇮🇩 Bahasa Indonesia</option>
-                <option value="hi">🇮🇳 हिन्दी</option>
-                <option value="tr">🇹🇷 Türkçe</option>
-                <option value="uk">🇺🇦 Українська</option>
-                <option value="kk">🇰🇿 Қазақша</option>
-                <option value="uz">🇺🇿 Oʻzbekcha</option>
-            </select>
-        </nav>
-    </header>
+        <section class="hero">
+            <div class="hero-text">
+                <div class="ai-tag">На основе искусственного интеллекта</div>
+                <h1>Узнайте о <span class="highlight">кассовом разрыве</span> за 5 секунд</h1>
+                <p class="sub"><strong>ИИ-модель</strong> анализирует ваши данные, прогнозирует дату разрыва и даёт рекомендации — с точностью <strong>95%</strong>.</p>
+                <div class="hero-buttons">
+                    <a href="/login.html" class="btn-primary">Попробовать бесплатно</a>
+                    <a href="/pricing.html" class="btn-secondary">Подробнее</a>
+                </div>
+            </div>
+        </section>
+    </div>
 
-    <section class="hero fade-in fade-in-delay-1">
-        <div class="hero-text">
-            <h1 id="hero_title">Управляйте бюджетом в пару кликов</h1>
-            <p id="hero_desc">Ежедневный учет расходов, планирование бюджета и аналитика — всё в одном приложении.</p>
-        </div>
-    </section>
-
-    <section id="features" class="fade-in fade-in-delay-2">
-        <h2 id="features_title">Что умеет Aurora</h2>
+    <div class="container features" id="features">
+        <h2>Что умеет Aurora <span style="color:#4F55F1;">AI</span></h2>
+        <p class="sub">Интеллектуальные инструменты для управления финансами</p>
         <div class="features-grid">
-            <div class="feature"><span>📊</span><h3 id="f1_title">Учет расходов</h3><p id="f1_desc">Вносите траты за секунды — только сумма и категория</p></div>
-            <div class="feature"><span>📈</span><h3 id="f2_title">Планирование бюджета</h3><p id="f2_desc">Недельные и месячные планы с учетом трендов</p></div>
-            <div class="feature"><span>💡</span><h3 id="f3_title">Аналитика</h3><p id="f3_desc">Наглядные отчеты по категориям</p></div>
-            <div class="feature"><span>☁️</span><h3 id="f4_title">Резервное копирование</h3><p id="f4_desc">Автосохранение в Google Drive</p></div>
-            <div class="feature"><span>📁</span><h3 id="f5_title">Экспорт в CSV</h3><p id="f5_desc">Выгружайте данные для анализа</p></div>
-            <div class="feature"><span>🔒</span><h3 id="f6_title">Конфиденциальность</h3><p id="f6_desc">Данные не передаются третьим лицам</p></div>
+            <div class="feature-card">
+                <span class="icon">🧠</span>
+                <h3>Прогноз на основе ИИ</h3>
+                <p>Модель машинного обучения анализирует историю и предсказывает дату разрыва.</p>
+                <span class="ai-chip">AI</span>
+            </div>
+            <div class="feature-card">
+                <span class="icon">📋</span>
+                <h3>Планирование платежей</h3>
+                <p>Календарь с умными напоминаниями о налогах и аренде.</p>
+            </div>
+            <div class="feature-card">
+                <span class="icon">💡</span>
+                <h3>Сценарии «что-если»</h3>
+                <p>Моделируйте разные варианты и смотрите, как ИИ оценивает риски.</p>
+                <span class="ai-chip">AI</span>
+            </div>
+            <div class="feature-card">
+                <span class="icon">🔒</span>
+                <h3>Безопасность</h3>
+                <p>Ваши данные защищены шифрованием и двухфакторной аутентификацией.</p>
+            </div>
         </div>
-    </section>
+    </div>
 
-    <section id="about" class="fade-in fade-in-delay-3">
-        <h2 id="about_title">О нас</h2>
-        <p id="about_text1">Мы — команда разработчиков, создающих финансовые инструменты для повседневного использования.</p>
-        <p style="margin-top: 16px;" id="about_text2">Наш продукт помогает людям управлять своими деньгами легко и удобно.</p>
-    </section>
+    <div class="pricing" id="pricing">
+        <div class="container">
+            <h2>Выберите свой тариф</h2>
+            <p class="sub">Начните с бесплатного и масштабируйтесь</p>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Базовый</h3>
+                    <div class="price">1 500 ₽<span>/мес</span></div>
+                    <div class="period">Для малого бизнеса</div>
+                    <ul>
+                        <li>До 5 пользователей</li>
+                        <li>Безлимитные транзакции</li>
+                        <li><strong>Полный ИИ-прогноз</strong></li>
+                        <li>Экспорт в PDF</li>
+                    </ul>
+                    <a href="/login.html" class="btn btn-primary-card">Попробовать</a>
+                </div>
 
-    <section id="contact" class="fade-in fade-in-delay-3">
-        <h2 id="contact_title">Контакты</h2>
-        <p id="contact_text">По всем вопросам пишите нам:</p>
-        <p style="margin-top: 12px; font-size: 20px;"><a href="mailto:support@aurorafin.ru">support@aurorafin.ru</a></p>
-    </section>
+                <div class="pricing-card popular">
+                    <div class="badge">Популярный</div>
+                    <h3>Стандарт</h3>
+                    <div class="price">4 900 ₽<span>/мес</span></div>
+                    <div class="period">Для растущих компаний</div>
+                    <ul>
+                        <li>До 20 пользователей</li>
+                        <li>Интеграция с 5+ банками</li>
+                        <li>Мультивалютность</li>
+                        <li>Персональный менеджер</li>
+                        <li><strong>ИИ-консультации</strong></li>
+                    </ul>
+                    <a href="/login.html" class="btn btn-primary-card">Попробовать</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Премиум</h3>
+                    <div class="price">9 900 ₽<span>/мес</span></div>
+                    <div class="period">Для корпораций</div>
+                    <ul>
+                        <li>Неограниченное число пользователей</li>
+                        <li>Неограниченные интеграции с банками и ERP</li>
+                        <li>Мультивалютность + криптовалюты</li>
+                        <li>Персональный менеджер и выделенная поддержка 24/7</li>
+                        <li><strong>ИИ-консультации и стратегии</strong></li>
+                        <li>Кастомная аналитика и отчёты</li>
+                        <li>Обучающие сессии для команды</li>
+                    </ul>
+                    <a href="/login.html" class="btn btn-primary-card">Попробовать</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
-        <p id="footer_text">© 2026 Aurora Fin. Все права защищены.</p>
-        <div style="margin-top: 12px;">
-            <a href="/privacy.html" id="footer_privacy">Политика конфиденциальности</a>
-            <a href="#" id="footer_terms">Условия использования</a>
-            <a href="mailto:support@aurorafin.ru">support@aurorafin.ru</a>
+        <div class="container">
+            <p>© 2026 Aurora Fin. Все права защищены.</p>
+            <div style="margin-top: 8px;">
+                <a href="/privacy.html">Политика конфиденциальности</a>
+                <a href="/pricing.html">Тарифы</a>
+                <a href="mailto:support@aurorafin.ru">support@aurorafin.ru</a>
+            </div>
         </div>
     </footer>
-
-    <script>
-        // Переводы для 17 языков. Для новых языков (sw, id, hi, tr, uk, kk, uz) пока заглушки на английском.
-        const translations = {
-            ru: {
-                nav_features: "Возможности", nav_about: "О нас", nav_contact: "Контакты", nav_login: "Войти",
-                hero_title: "Управляйте бюджетом в пару кликов",
-                hero_desc: "Ежедневный учет расходов, планирование бюджета и аналитика — всё в одном приложении.",
-                features_title: "Что умеет Aurora",
-                f1_title: "Учет расходов", f1_desc: "Вносите траты за секунды — только сумма и категория",
-                f2_title: "Планирование бюджета", f2_desc: "Недельные и месячные планы с учетом трендов",
-                f3_title: "Аналитика", f3_desc: "Наглядные отчеты по категориям",
-                f4_title: "Резервное копирование", f4_desc: "Автосохранение в Google Drive",
-                f5_title: "Экспорт в CSV", f5_desc: "Выгружайте данные для анализа",
-                f6_title: "Конфиденциальность", f6_desc: "Данные не передаются третьим лицам",
-                about_title: "О нас",
-                about_text1: "Мы — команда разработчиков, создающих финансовые инструменты для повседневного использования.",
-                about_text2: "Наш продукт помогает людям управлять своими деньгами легко и удобно.",
-                contact_title: "Контакты",
-                contact_text: "По всем вопросам пишите нам:",
-                footer_text: "© 2026 Aurora Fin. Все права защищены.",
-                footer_privacy: "Политика конфиденциальности",
-                footer_terms: "Условия использования"
-            },
-            en: {
-                nav_features: "Features", nav_about: "About", nav_contact: "Contacts", nav_login: "Login",
-                hero_title: "Manage your budget in a few clicks",
-                hero_desc: "Daily expense tracking, budget planning, and analytics — all in one app.",
-                features_title: "What Aurora can do",
-                f1_title: "Expense tracking", f1_desc: "Enter expenses in seconds — just amount and category",
-                f2_title: "Budget planning", f2_desc: "Weekly and monthly plans with trend analysis",
-                f3_title: "Analytics", f3_desc: "Visual reports by category",
-                f4_title: "Backup", f4_desc: "Auto-save to Google Drive",
-                f5_title: "Export to CSV", f5_desc: "Export data for analysis",
-                f6_title: "Privacy", f6_desc: "Your data is not shared with third parties",
-                about_title: "About us",
-                about_text1: "We are a team of developers creating financial tools for everyday use.",
-                about_text2: "Our product helps people manage their money easily and conveniently.",
-                contact_title: "Contacts",
-                contact_text: "For any questions, write to us:",
-                footer_text: "© 2026 Aurora Fin. All rights reserved.",
-                footer_privacy: "Privacy Policy",
-                footer_terms: "Terms of Use"
-            },
-            es: {
-                nav_features: "Características", nav_about: "Nosotros", nav_contact: "Contacto", nav_login: "Iniciar sesión",
-                hero_title: "Administre su presupuesto en pocos clics",
-                hero_desc: "Seguimiento de gastos diario, planificación presupuestaria y análisis — todo en una aplicación.",
-                features_title: "Lo que Aurora puede hacer",
-                f1_title: "Seguimiento de gastos", f1_desc: "Ingrese gastos en segundos — solo monto y categoría",
-                f2_title: "Planificación presupuestaria", f2_desc: "Planes semanales y mensuales con análisis de tendencias",
-                f3_title: "Analítica", f3_desc: "Informes visuales por categoría",
-                f4_title: "Copia de seguridad", f4_desc: "Guardado automático en Google Drive",
-                f5_title: "Exportar a CSV", f5_desc: "Exportar datos para análisis",
-                f6_title: "Privacidad", f6_desc: "Sus datos no se comparten con terceros",
-                about_title: "Sobre nosotros",
-                about_text1: "Somos un equipo de desarrolladores que crean herramientas financieras para el uso diario.",
-                about_text2: "Nuestro producto ayuda a las personas a administrar su dinero de manera fácil y conveniente.",
-                contact_title: "Contactos",
-                contact_text: "Para cualquier pregunta, escríbanos:",
-                footer_text: "© 2026 Aurora Fin. Todos los derechos reservados.",
-                footer_privacy: "Política de privacidad",
-                footer_terms: "Términos de uso"
-            },
-            fr: {
-                nav_features: "Fonctionnalités", nav_about: "À propos", nav_contact: "Contact", nav_login: "Se connecter",
-                hero_title: "Gérez votre budget en quelques clics",
-                hero_desc: "Suivi des dépenses quotidiennes, planification budgétaire et analyses — tout dans une seule application.",
-                features_title: "Ce que Aurora peut faire",
-                f1_title: "Suivi des dépenses", f1_desc: "Saisissez les dépenses en quelques secondes — montant et catégorie",
-                f2_title: "Planification budgétaire", f2_desc: "Plans hebdomadaires et mensuels avec analyse des tendances",
-                f3_title: "Analytique", f3_desc: "Rapports visuels par catégorie",
-                f4_title: "Sauvegarde", f4_desc: "Sauvegarde automatique dans Google Drive",
-                f5_title: "Exporter en CSV", f5_desc: "Exporter les données pour analyse",
-                f6_title: "Confidentialité", f6_desc: "Vos données ne sont pas partagées avec des tiers",
-                about_title: "À propos de nous",
-                about_text1: "Nous sommes une équipe de développeurs créant des outils financiers pour un usage quotidien.",
-                about_text2: "Notre produit aide les gens à gérer leur argent facilement et confortablement.",
-                contact_title: "Contacts",
-                contact_text: "Pour toute question, écrivez-nous:",
-                footer_text: "© 2026 Aurora Fin. Tous droits réservés.",
-                footer_privacy: "Politique de confidentialité",
-                footer_terms: "Conditions d'utilisation"
-            },
-            de: {
-                nav_features: "Funktionen", nav_about: "Über uns", nav_contact: "Kontakt", nav_login: "Einloggen",
-                hero_title: "Verwalten Sie Ihr Budget mit wenigen Klicks",
-                hero_desc: "Tägliche Ausgabenverfolgung, Budgetplanung und Analysen – alles in einer App.",
-                features_title: "Was Aurora kann",
-                f1_title: "Ausgabenverfolgung", f1_desc: "Erfassen Sie Ausgaben in Sekunden – nur Betrag und Kategorie",
-                f2_title: "Budgetplanung", f2_desc: "Wöchentliche und monatliche Pläne mit Trendanalyse",
-                f3_title: "Analytik", f3_desc: "Visuelle Berichte nach Kategorie",
-                f4_title: "Backup", f4_desc: "Automatisches Speichern in Google Drive",
-                f5_title: "Export nach CSV", f5_desc: "Daten zur Analyse exportieren",
-                f6_title: "Datenschutz", f6_desc: "Ihre Daten werden nicht an Dritte weitergegeben",
-                about_title: "Über uns",
-                about_text1: "Wir sind ein Team von Entwicklern, das Finanztools für den täglichen Gebrauch erstellt.",
-                about_text2: "Unser Produkt hilft Menschen, ihr Geld einfach und bequem zu verwalten.",
-                contact_title: "Kontakt",
-                contact_text: "Bei Fragen schreiben Sie uns:",
-                footer_text: "© 2026 Aurora Fin. Alle Rechte vorbehalten.",
-                footer_privacy: "Datenschutzerklärung",
-                footer_terms: "Nutzungsbedingungen"
-            },
-            pt: {
-                nav_features: "Recursos", nav_about: "Sobre", nav_contact: "Contato", nav_login: "Entrar",
-                hero_title: "Gerencie seu orçamento em poucos cliques",
-                hero_desc: "Acompanhamento diário de despesas, planejamento orçamentário e análises — tudo em um aplicativo.",
-                features_title: "O que Aurora pode fazer",
-                f1_title: "Controle de despesas", f1_desc: "Insira despesas em segundos — apenas valor e categoria",
-                f2_title: "Planejamento orçamentário", f2_desc: "Planos semanais e mensais com análise de tendências",
-                f3_title: "Analítica", f3_desc: "Relatórios visuais por categoria",
-                f4_title: "Backup", f4_desc: "Salvamento automático no Google Drive",
-                f5_title: "Exportar para CSV", f5_desc: "Exportar dados para análise",
-                f6_title: "Privacidade", f6_desc: "Seus dados não são compartilhados com terceiros",
-                about_title: "Sobre nós",
-                about_text1: "Somos uma equipe de desenvolvedores criando ferramentas financeiras para uso diário.",
-                about_text2: "Nosso produto ajuda as pessoas a gerenciar seu dinheiro de forma fácil e conveniente.",
-                contact_title: "Contatos",
-                contact_text: "Para qualquer dúvida, escreva-nos:",
-                footer_text: "© 2026 Aurora Fin. Todos os direitos reservados.",
-                footer_privacy: "Política de Privacidade",
-                footer_terms: "Termos de Uso"
-            },
-            zh: {
-                nav_features: "功能", nav_about: "关于", nav_contact: "联系", nav_login: "登录",
-                hero_title: "只需点击几下即可管理您的预算",
-                hero_desc: "日常费用跟踪、预算规划和分析 — 全部在一个应用程序中。",
-                features_title: "Aurora能做什么",
-                f1_title: "费用跟踪", f1_desc: "几秒钟内输入费用 — 只需金额和类别",
-                f2_title: "预算规划", f2_desc: "每周和每月计划，带有趋势分析",
-                f3_title: "分析", f3_desc: "按类别的可视化报告",
-                f4_title: "备份", f4_desc: "自动保存到Google Drive",
-                f5_title: "导出为CSV", f5_desc: "导出数据进行分析",
-                f6_title: "隐私", f6_desc: "您的数据不会与第三方共享",
-                about_title: "关于我们",
-                about_text1: "我们是一个开发团队，为日常使用创建金融工具。",
-                about_text2: "我们的产品帮助人们轻松方便地管理资金。",
-                contact_title: "联系方式",
-                contact_text: "如有任何问题，请写信给我们：",
-                footer_text: "© 2026 Aurora Fin。保留所有权利。",
-                footer_privacy: "隐私政策",
-                footer_terms: "使用条款"
-            },
-            ja: {
-                nav_features: "機能", nav_about: "概要", nav_contact: "連絡先", nav_login: "ログイン",
-                hero_title: "数回のクリックで予算を管理",
-                hero_desc: "日常の経費追跡、予算計画、分析 — すべて1つのアプリで。",
-                features_title: "Auroraができること",
-                f1_title: "経費追跡", f1_desc: "数秒で経費を入力 — 金額とカテゴリのみ",
-                f2_title: "予算計画", f2_desc: "トレンド分析付きの週次・月次計画",
-                f3_title: "分析", f3_desc: "カテゴリ別のビジュアルレポート",
-                f4_title: "バックアップ", f4_desc: "Google Driveへの自動保存",
-                f5_title: "CSVにエクスポート", f5_desc: "分析用にデータをエクスポート",
-                f6_title: "プライバシー", f6_desc: "データは第三者と共有されません",
-                about_title: "私たちについて",
-                about_text1: "私たちは日常使いの金融ツールを作成する開発者チームです。",
-                about_text2: "私たちの製品は、人々が簡単かつ便利にお金を管理するのに役立ちます。",
-                contact_title: "連絡先",
-                contact_text: "ご質問はこちらまで：",
-                footer_text: "© 2026 Aurora Fin。すべての権利を保有します。",
-                footer_privacy: "プライバシーポリシー",
-                footer_terms: "利用規約"
-            },
-            ar: {
-                nav_features: "الميزات", nav_about: "من نحن", nav_contact: "اتصل بنا", nav_login: "تسجيل الدخول",
-                hero_title: "إدارة ميزانيتك ببضع نقرات",
-                hero_desc: "تتبع المصروفات اليومية، تخطيط الميزانية والتحليلات — كل ذلك في تطبيق واحد.",
-                features_title: "ماذا يمكن أن تفعل Aurora",
-                f1_title: "تتبع المصروفات", f1_desc: "أدخل المصروفات في ثوانٍ — فقط المبلغ والفئة",
-                f2_title: "تخطيط الميزانية", f2_desc: "خطط أسبوعية وشهرية مع تحليل الاتجاهات",
-                f3_title: "تحليلات", f3_desc: "تقارير مرئية حسب الفئة",
-                f4_title: "النسخ الاحتياطي", f4_desc: "حفظ تلقائي في Google Drive",
-                f5_title: "تصدير إلى CSV", f5_desc: "تصدير البيانات للتحليل",
-                f6_title: "الخصوصية", f6_desc: "لا تتم مشاركة بياناتك مع أطراف ثالثة",
-                about_title: "من نحن",
-                about_text1: "نحن فريق من المطورين الذين ينشئون أدوات مالية للاستخدام اليومي.",
-                about_text2: "يساعد منتجنا الناس على إدارة أموالهم بسهولة وراحة.",
-                contact_title: "جهات الاتصال",
-                contact_text: "لأي أسئلة، اكتب لنا:",
-                footer_text: "© 2026 Aurora Fin. جميع الحقوق محفوظة.",
-                footer_privacy: "سياسة الخصوصية",
-                footer_terms: "شروط الاستخدام"
-            },
-            it: {
-                nav_features: "Funzionalità", nav_about: "Chi siamo", nav_contact: "Contatti", nav_login: "Accedi",
-                hero_title: "Gestisci il tuo budget in pochi clic",
-                hero_desc: "Tracciamento delle spese quotidiane, pianificazione del budget e analisi — tutto in un'app.",
-                features_title: "Cosa può fare Aurora",
-                f1_title: "Tracciamento spese", f1_desc: "Inserisci le spese in secondi — solo importo e categoria",
-                f2_title: "Pianificazione budget", f2_desc: "Piani settimanali e mensili con analisi delle tendenze",
-                f3_title: "Analisi", f3_desc: "Report visivi per categoria",
-                f4_title: "Backup", f4_desc: "Salvataggio automatico su Google Drive",
-                f5_title: "Esporta in CSV", f5_desc: "Esporta i dati per l'analisi",
-                f6_title: "Privacy", f6_desc: "I tuoi dati non vengono condivisi con terze parti",
-                about_title: "Chi siamo",
-                about_text1: "Siamo un team di sviluppatori che creano strumenti finanziari per l'uso quotidiano.",
-                about_text2: "Il nostro prodotto aiuta le persone a gestire i propri soldi in modo facile e conveniente.",
-                contact_title: "Contatti",
-                contact_text: "Per qualsiasi domanda, scrivici:",
-                footer_text: "© 2026 Aurora Fin. Tutti i diritti riservati.",
-                footer_privacy: "Informativa sulla privacy",
-                footer_terms: "Termini di utilizzo"
-            },
-            // Новые языки (пока заглушки на английском, но с пометкой для дальнейшего перевода)
-            sw: {
-                nav_features: "Features", nav_about: "About", nav_contact: "Contacts", nav_login: "Login",
-                hero_title: "Manage your budget in a few clicks",
-                hero_desc: "Daily expense tracking, budget planning, and analytics — all in one app.",
-                features_title: "What Aurora can do",
-                f1_title: "Expense tracking", f1_desc: "Enter expenses in seconds — just amount and category",
-                f2_title: "Budget planning", f2_desc: "Weekly and monthly plans with trend analysis",
-                f3_title: "Analytics", f3_desc: "Visual reports by category",
-                f4_title: "Backup", f4_desc: "Auto-save to Google Drive",
-                f5_title: "Export to CSV", f5_desc: "Export data for analysis",
-                f6_title: "Privacy", f6_desc: "Your data is not shared with third parties",
-                about_title: "About us",
-                about_text1: "We are a team of developers creating financial tools for everyday use.",
-                about_text2: "Our product helps people manage their money easily and conveniently.",
-                contact_title: "Contacts",
-                contact_text: "For any questions, write to us:",
-                footer_text: "© 2026 Aurora Fin. All rights reserved.",
-                footer_privacy: "Privacy Policy",
-                footer_terms: "Terms of Use"
-            },
-            id: {
-                nav_features: "Features", nav_about: "About", nav_contact: "Contacts", nav_login: "Login",
-                hero_title: "Manage your budget in a few clicks",
-                hero_desc: "Daily expense tracking, budget planning, and analytics — all in one app.",
-                features_title: "What Aurora can do",
-                f1_title: "Expense tracking", f1_desc: "Enter expenses in seconds — just amount and category",
-                f2_title: "Budget planning", f2_desc: "Weekly and monthly plans with trend analysis",
-                f3_title: "Analytics", f3_desc: "Visual reports by category",
-                f4_title: "Backup", f4_desc: "Auto-save to Google Drive",
-                f5_title: "Export to CSV", f5_desc: "Export data for analysis",
-                f6_title: "Privacy", f6_desc: "Your data is not shared with third parties",
-                about_title: "About us",
-                about_text1: "We are a team of developers creating financial tools for everyday use.",
-                about_text2: "Our product helps people manage their money easily and conveniently.",
-                contact_title: "Contacts",
-                contact_text: "For any questions, write to us:",
-                footer_text: "© 2026 Aurora Fin. All rights reserved.",
-                footer_privacy: "Privacy Policy",
-                footer_terms: "Terms of Use"
-            },
-            hi: {
-                nav_features: "Features", nav_about: "About", nav_contact: "Contacts", nav_login: "Login",
-                hero_title: "Manage your budget in a few clicks",
-                hero_desc: "Daily expense tracking, budget planning, and analytics — all in one app.",
-                features_title: "What Aurora can do",
-                f1_title: "Expense tracking", f1_desc: "Enter expenses in seconds — just amount and category",
-                f2_title: "Budget planning", f2_desc: "Weekly and monthly plans with trend analysis",
-                f3_title: "Analytics", f3_desc: "Visual reports by category",
-                f4_title: "Backup", f4_desc: "Auto-save to Google Drive",
-                f5_title: "Export to CSV", f5_desc: "Export data for analysis",
-                f6_title: "Privacy", f6_desc: "Your data is not shared with third parties",
-                about_title: "About us",
-                about_text1: "We are a team of developers creating financial tools for everyday use.",
-                about_text2: "Our product helps people manage their money easily and conveniently.",
-                contact_title: "Contacts",
-                contact_text: "For any questions, write to us:",
-                footer_text: "© 2026 Aurora Fin. All rights reserved.",
-                footer_privacy: "Privacy Policy",
-                footer_terms: "Terms of Use"
-            },
-            tr: {
-                nav_features: "Features", nav_about: "About", nav_contact: "Contacts", nav_login: "Login",
-                hero_title: "Manage your budget in a few clicks",
-                hero_desc: "Daily expense tracking, budget planning, and analytics — all in one app.",
-                features_title: "What Aurora can do",
-                f1_title: "Expense tracking", f1_desc: "Enter expenses in seconds — just amount and category",
-                f2_title: "Budget planning", f2_desc: "Weekly and monthly plans with trend analysis",
-                f3_title: "Analytics", f3_desc: "Visual reports by category",
-                f4_title: "Backup", f4_desc: "Auto-save to Google Drive",
-                f5_title: "Export to CSV", f5_desc: "Export data for analysis",
-                f6_title: "Privacy", f6_desc: "Your data is not shared with third parties",
-                about_title: "About us",
-                about_text1: "We are a team of developers creating financial tools for everyday use.",
-                about_text2: "Our product helps people manage their money easily and conveniently.",
-                contact_title: "Contacts",
-                contact_text: "For any questions, write to us:",
-                footer_text: "© 2026 Aurora Fin. All rights reserved.",
-                footer_privacy: "Privacy Policy",
-                footer_terms: "Terms of Use"
-            },
-            uk: {
-                nav_features: "Features", nav_about: "About", nav_contact: "Contacts", nav_login: "Login",
-                hero_title: "Manage your budget in a few clicks",
-                hero_desc: "Daily expense tracking, budget planning, and analytics — all in one app.",
-                features_title: "What Aurora can do",
-                f1_title: "Expense tracking", f1_desc: "Enter expenses in seconds — just amount and category",
-                f2_title: "Budget planning", f2_desc: "Weekly and monthly plans with trend analysis",
-                f3_title: "Analytics", f3_desc: "Visual reports by category",
-                f4_title: "Backup", f4_desc: "Auto-save to Google Drive",
-                f5_title: "Export to CSV", f5_desc: "Export data for analysis",
-                f6_title: "Privacy", f6_desc: "Your data is not shared with third parties",
-                about_title: "About us",
-                about_text1: "We are a team of developers creating financial tools for everyday use.",
-                about_text2: "Our product helps people manage their money easily and conveniently.",
-                contact_title: "Contacts",
-                contact_text: "For any questions, write to us:",
-                footer_text: "© 2026 Aurora Fin. All rights reserved.",
-                footer_privacy: "Privacy Policy",
-                footer_terms: "Terms of Use"
-            },
-            kk: {
-                nav_features: "Features", nav_about: "About", nav_contact: "Contacts", nav_login: "Login",
-                hero_title: "Manage your budget in a few clicks",
-                hero_desc: "Daily expense tracking, budget planning, and analytics — all in one app.",
-                features_title: "What Aurora can do",
-                f1_title: "Expense tracking", f1_desc: "Enter expenses in seconds — just amount and category",
-                f2_title: "Budget planning", f2_desc: "Weekly and monthly plans with trend analysis",
-                f3_title: "Analytics", f3_desc: "Visual reports by category",
-                f4_title: "Backup", f4_desc: "Auto-save to Google Drive",
-                f5_title: "Export to CSV", f5_desc: "Export data for analysis",
-                f6_title: "Privacy", f6_desc: "Your data is not shared with third parties",
-                about_title: "About us",
-                about_text1: "We are a team of developers creating financial tools for everyday use.",
-                about_text2: "Our product helps people manage their money easily and conveniently.",
-                contact_title: "Contacts",
-                contact_text: "For any questions, write to us:",
-                footer_text: "© 2026 Aurora Fin. All rights reserved.",
-                footer_privacy: "Privacy Policy",
-                footer_terms: "Terms of Use"
-            },
-            uz: {
-                nav_features: "Features", nav_about: "About", nav_contact: "Contacts", nav_login: "Login",
-                hero_title: "Manage your budget in a few clicks",
-                hero_desc: "Daily expense tracking, budget planning, and analytics — all in one app.",
-                features_title: "What Aurora can do",
-                f1_title: "Expense tracking", f1_desc: "Enter expenses in seconds — just amount and category",
-                f2_title: "Budget planning", f2_desc: "Weekly and monthly plans with trend analysis",
-                f3_title: "Analytics", f3_desc: "Visual reports by category",
-                f4_title: "Backup", f4_desc: "Auto-save to Google Drive",
-                f5_title: "Export to CSV", f5_desc: "Export data for analysis",
-                f6_title: "Privacy", f6_desc: "Your data is not shared with third parties",
-                about_title: "About us",
-                about_text1: "We are a team of developers creating financial tools for everyday use.",
-                about_text2: "Our product helps people manage their money easily and conveniently.",
-                contact_title: "Contacts",
-                contact_text: "For any questions, write to us:",
-                footer_text: "© 2026 Aurora Fin. All rights reserved.",
-                footer_privacy: "Privacy Policy",
-                footer_terms: "Terms of Use"
-            }
-        };
-
-        function setLang(lang) {
-            localStorage.setItem('lang', lang);
-            applyLanguage(lang);
-            // RTL для арабского
-            if (lang === 'ar') {
-                document.documentElement.dir = 'rtl';
-                document.documentElement.lang = 'ar';
-            } else {
-                document.documentElement.dir = 'ltr';
-                document.documentElement.lang = lang;
-            }
-        }
-
-        function applyLanguage(lang) {
-            const t = translations[lang];
-            if (!t) return;
-            document.getElementById('nav_features').textContent = t.nav_features;
-            document.getElementById('nav_about').textContent = t.nav_about;
-            document.getElementById('nav_contact').textContent = t.nav_contact;
-            document.getElementById('nav_login').textContent = t.nav_login;
-            document.getElementById('hero_title').textContent = t.hero_title;
-            document.getElementById('hero_desc').textContent = t.hero_desc;
-            document.getElementById('features_title').textContent = t.features_title;
-            document.getElementById('f1_title').textContent = t.f1_title;
-            document.getElementById('f1_desc').textContent = t.f1_desc;
-            document.getElementById('f2_title').textContent = t.f2_title;
-            document.getElementById('f2_desc').textContent = t.f2_desc;
-            document.getElementById('f3_title').textContent = t.f3_title;
-            document.getElementById('f3_desc').textContent = t.f3_desc;
-            document.getElementById('f4_title').textContent = t.f4_title;
-            document.getElementById('f4_desc').textContent = t.f4_desc;
-            document.getElementById('f5_title').textContent = t.f5_title;
-            document.getElementById('f5_desc').textContent = t.f5_desc;
-            document.getElementById('f6_title').textContent = t.f6_title;
-            document.getElementById('f6_desc').textContent = t.f6_desc;
-            document.getElementById('about_title').textContent = t.about_title;
-            document.getElementById('about_text1').textContent = t.about_text1;
-            document.getElementById('about_text2').textContent = t.about_text2;
-            document.getElementById('contact_title').textContent = t.contact_title;
-            document.getElementById('contact_text').textContent = t.contact_text;
-            document.getElementById('footer_text').textContent = t.footer_text;
-            document.getElementById('footer_privacy').textContent = t.footer_privacy;
-            document.getElementById('footer_terms').textContent = t.footer_terms;
-        }
-
-        const savedLang = localStorage.getItem('lang') || 'ru';
-        document.getElementById('langSelect').value = savedLang;
-        applyLanguage(savedLang);
-        if (savedLang === 'ar') {
-            document.documentElement.dir = 'rtl';
-        }
-    </script>
 </body>
 </html>

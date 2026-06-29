@@ -33,7 +33,6 @@ def get_session_user():
 
 @app.route('/')
 def index():
-    # Всегда показываем лендинг
     return send_from_directory(PROJECT_DIR, 'index.html')
 
 @app.route('/login.html')
@@ -91,13 +90,14 @@ def login():
     username = data.get('username')
     password = data.get('password')
     remember = data.get('remember', False)
-    captcha_input = data.get('captcha', '').strip()
     
-    client_ip = request.remote_addr
-    expected = captcha_store.get(client_ip)
-    if expected is None or str(expected) != captcha_input:
-        return jsonify({'success': False, 'message': 'Неверная капча'}), 401
-    captcha_store.pop(client_ip, None)
+    # Проверка капчи отключена
+    # captcha_input = data.get('captcha', '').strip()
+    # client_ip = request.remote_addr
+    # expected = captcha_store.get(client_ip)
+    # if expected is None or str(expected) != captcha_input:
+    #     return jsonify({'success': False, 'message': 'Неверная капча'}), 401
+    # captcha_store.pop(client_ip, None)
     
     if username and password:
         resp = make_response(jsonify({'success': True, 'message': 'OK'}))

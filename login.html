@@ -4,46 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход — Aurora Fin</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: #000000; color: #FFFFFF; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px; }
-        .login-container { max-width: 400px; width: 100%; }
-        .logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; color: #FFFFFF; margin-bottom: 32px; text-align: center; }
-        .logo span { color: #4F55F1; }
-        .form-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; }
-        .form-sub { color: rgba(255,255,255,0.5); font-size: 14px; margin-bottom: 32px; text-align: center; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f4ff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px; }
+        .login-container { max-width: 400px; width: 100%; background: white; padding: 40px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+        .logo { font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 32px; color: #1a1a2e; }
+        .logo span { color: #4a6cf7; }
+        .form-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; color: #1a1a2e; }
+        .form-sub { color: #888; font-size: 14px; margin-bottom: 32px; text-align: center; }
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
-        .form-group input, .form-group select { width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #FFFFFF; font-size: 16px; transition: 0.2s; font-family: 'Inter', sans-serif; }
-        .form-group input:focus { border-color: #4F55F1; outline: none; background: rgba(255,255,255,0.08); }
-        .form-group select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.5)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; }
-        .form-group select option { background: #1a1a1a; color: #FFFFFF; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 6px; }
+        .form-group input { width: 100%; padding: 12px 16px; border: 2px solid #e0e4f0; border-radius: 12px; font-size: 16px; transition: 0.2s; }
+        .form-group input:focus { border-color: #4a6cf7; outline: none; }
         .checkbox-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-        .checkbox-group label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255,255,255,0.6); cursor: pointer; }
-        .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: #4F55F1; background: transparent; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; }
-        .checkbox-group a { color: rgba(255,255,255,0.4); font-size: 14px; text-decoration: none; transition: 0.2s; }
-        .checkbox-group a:hover { color: #4F55F1; }
-        .captcha-container { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-        .captcha-container span { font-size: 20px; font-weight: 700; background: rgba(255,255,255,0.06); padding: 10px 16px; border-radius: 12px; color: #4F55F1; font-family: 'Courier New', monospace; flex: 1; text-align: center; }
-        .captcha-refresh { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 22px; cursor: pointer; transition: 0.2s; }
-        .captcha-refresh:hover { color: #4F55F1; transform: rotate(90deg); }
-        .btn { width: 100%; padding: 16px; background: #4F55F1; color: #FFFFFF; border: none; border-radius: 40px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: 'Inter', sans-serif; }
-        .btn:hover { background: #3a40d1; transform: translateY(-2px); }
-        .btn-register { background: transparent; color: #4F55F1; border: 2px solid rgba(79,85,241,0.3); margin-top: 12px; }
-        .btn-register:hover { background: rgba(79,85,241,0.1); transform: translateY(-2px); }
-        .toggle-link { text-align: center; margin: 20px 0; color: rgba(255,255,255,0.4); font-size: 14px; }
-        .toggle-link a { color: #4F55F1; text-decoration: none; font-weight: 600; cursor: pointer; }
+        .checkbox-group label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #555; cursor: pointer; }
+        .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: #4a6cf7; }
+        .checkbox-group a { color: #4a6cf7; font-size: 14px; text-decoration: none; }
+        .checkbox-group a:hover { text-decoration: underline; }
+        .btn { width: 100%; padding: 14px; background: #4a6cf7; color: white; border: none; border-radius: 30px; font-size: 18px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn:hover { background: #3a5ad7; transform: translateY(-2px); }
+        .btn-register { background: #22c55e; margin-top: 12px; }
+        .btn-register:hover { background: #16a34a; }
+        .toggle-link { text-align: center; margin: 20px 0; color: #888; font-size: 14px; }
+        .toggle-link a { color: #4a6cf7; cursor: pointer; font-weight: 600; }
         .toggle-link a:hover { text-decoration: underline; }
-        .back-link { display: block; text-align: center; margin-top: 24px; color: rgba(255,255,255,0.3); text-decoration: none; font-size: 14px; transition: 0.2s; }
-        .back-link:hover { color: rgba(255,255,255,0.6); }
+        .back-link { display: block; text-align: center; margin-top: 24px; color: #888; text-decoration: none; font-size: 14px; }
+        .back-link:hover { color: #4a6cf7; }
         .hidden { display: none !important; }
-        .register-fields { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; margin-top: 8px; }
+        .register-fields { border-top: 1px solid #e0e4f0; padding-top: 20px; margin-top: 8px; }
         .error, .success { font-size: 14px; text-align: center; padding: 10px 12px; border-radius: 12px; margin-bottom: 16px; display: none; }
-        .error { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
-        .success { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
-        @media (max-width: 480px) { .login-container { padding: 0 16px; } }
+        .error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        @media (max-width: 480px) { .login-container { padding: 24px; } }
     </style>
 </head>
 <body>
@@ -69,16 +61,7 @@
                     <label><input type="checkbox" id="remember" checked> <span id="remember_text">Запомнить меня</span></label>
                     <a href="/forgot.html" id="forgot_link">Забыли пароль?</a>
                 </div>
-                <div id="captchaBlock">
-                    <label id="captcha_label" style="font-size:14px; color:rgba(255,255,255,0.7);">Введите результат</label>
-                    <div class="captcha-container">
-                        <span id="captchaQuestion">Загрузка...</span>
-                        <button type="button" class="captcha-refresh" onclick="refreshCaptcha()">⟳</button>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="captchaInput" placeholder="Введите ответ" required>
-                    </div>
-                </div>
+                <!-- Капча удалена -->
             </div>
 
             <div id="registerFields" class="register-fields hidden">
@@ -109,81 +92,147 @@
     </div>
 
     <script>
-        // --- ПОЛНЫЙ JAVASCRIPT (ВХОД, РЕГИСТРАЦИЯ, КАПЧА, ЗАПОМНИТЬ МЕНЯ) ---
         let users = JSON.parse(localStorage.getItem('users')) || {};
         let isRegisterMode = false;
-        let savedLang = localStorage.getItem('lang') || 'ru';
-
-        // Капча
-        function refreshCaptcha() {
-            fetch('/captcha')
-                .then(response => response.json())
-                .then(data => { document.getElementById('captchaQuestion').textContent = data.expression; })
-                .catch(() => { document.getElementById('captchaQuestion').textContent = 'Ошибка загрузки'; });
-        }
-        window.addEventListener('load', refreshCaptcha);
 
         function toggleForm() {
             isRegisterMode = !isRegisterMode;
-            const reg = document.getElementById('registerFields'), login = document.getElementById('loginFields');
-            const s = document.getElementById('submitBtn'), r = document.getElementById('registerBtn');
-            const tl = document.getElementById('toggleLink'), tt = document.getElementById('toggleText'), ft = document.getElementById('formTitle'), fs = document.getElementById('formSub');
+            const reg = document.getElementById('registerFields');
+            const login = document.getElementById('loginFields');
+            const submit = document.getElementById('submitBtn');
+            const regBtn = document.getElementById('registerBtn');
+            const toggleLink = document.getElementById('toggleLink');
+            const toggleText = document.getElementById('toggleText');
+            const formTitle = document.getElementById('formTitle');
+            const formSub = document.getElementById('formSub');
+
             if (isRegisterMode) {
-                reg.classList.remove('hidden'); login.style.display = 'none'; s.style.display = 'none'; r.style.display = 'block';
-                tl.textContent = 'Войти';
-                tt.textContent = 'Уже есть аккаунт?';
-                ft.textContent = 'Создайте аккаунт';
-                fs.textContent = 'Заполните данные для регистрации';
-                document.getElementById('error').style.display = 'none'; document.getElementById('success').style.display = 'none';
+                reg.classList.remove('hidden');
+                login.style.display = 'none';
+                submit.style.display = 'none';
+                regBtn.style.display = 'block';
+                toggleLink.textContent = 'Войти';
+                toggleText.textContent = 'Уже есть аккаунт?';
+                formTitle.textContent = 'Создайте аккаунт';
+                formSub.textContent = 'Заполните данные для регистрации';
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('success').style.display = 'none';
             } else {
-                reg.classList.add('hidden'); login.style.display = 'block'; s.style.display = 'block'; r.style.display = 'none';
-                tl.textContent = 'Зарегистрироваться';
-                tt.textContent = 'Нет аккаунта?';
-                ft.textContent = 'Вход в аккаунт';
-                fs.textContent = 'Войдите, чтобы продолжить';
+                reg.classList.add('hidden');
+                login.style.display = 'block';
+                submit.style.display = 'block';
+                regBtn.style.display = 'none';
+                toggleLink.textContent = 'Зарегистрироваться';
+                toggleText.textContent = 'Нет аккаунта?';
+                formTitle.textContent = 'Вход в аккаунт';
+                formSub.textContent = 'Войдите, чтобы продолжить';
             }
         }
 
         function login(e) {
             e.preventDefault();
-            const u = document.getElementById('username').value.trim(), p = document.getElementById('password').value;
-            const r = document.getElementById('remember').checked, c = document.getElementById('captchaInput').value.trim();
-            const err = document.getElementById('error'), suc = document.getElementById('success');
-            err.style.display = 'none'; suc.style.display = 'none';
-            if (!u || !p || !c) { err.textContent = 'Заполните все поля'; err.style.display = 'block'; return false; }
-            fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username:u, password:p, remember:r, captcha:c }) })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) { localStorage.setItem('loggedIn','true'); localStorage.setItem('username',u); window.location.href = '/run_aurora_direct'; }
-                    else { err.textContent = data.message || 'Неверный логин или пароль'; err.style.display = 'block'; refreshCaptcha(); document.getElementById('captchaInput').value = ''; }
-                })
-                .catch(() => { err.textContent = 'Ошибка подключения к серверу'; err.style.display = 'block'; });
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+            error.style.display = 'none';
+            success.style.display = 'none';
+
+            if (!username || !password) {
+                error.textContent = 'Заполните все поля';
+                error.style.display = 'block';
+                return false;
+            }
+
+            fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, remember })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    localStorage.setItem('loggedIn', 'true');
+                    localStorage.setItem('username', username);
+                    window.location.href = '/run_aurora_direct';
+                } else {
+                    error.textContent = data.message || 'Неверный логин или пароль';
+                    error.style.display = 'block';
+                }
+            })
+            .catch(() => {
+                error.textContent = 'Ошибка подключения к серверу';
+                error.style.display = 'block';
+            });
             return false;
         }
 
         function register() {
-            const u = document.getElementById('username').value.trim();
-            const p = document.getElementById('password').value;
-            const p2 = document.getElementById('password2').value;
-            const f = document.getElementById('fullname').value.trim();
-            const c = document.getElementById('company').value.trim();
-            const e = document.getElementById('email').value.trim();
-            const r = document.getElementById('role').value;
-            const err = document.getElementById('error'), suc = document.getElementById('success');
-            err.style.display = 'none'; suc.style.display = 'none';
-            if (!u || !p || !p2 || !f || !c || !e) { err.textContent = 'Заполните все поля'; err.style.display = 'block'; return; }
-            if (u.length < 10 || u.length > 12) { err.textContent = 'ИНН должен содержать 10 или 12 цифр'; err.style.display = 'block'; return; }
-            if (p.length < 4) { err.textContent = 'Пароль должен быть не менее 4 символов'; err.style.display = 'block'; return; }
-            if (p !== p2) { err.textContent = 'Пароли не совпадают'; err.style.display = 'block'; return; }
-            if (users[u]) { err.textContent = 'Пользователь с таким ИНН уже существует'; err.style.display = 'block'; return; }
-            users[u] = { password: p, fullname: f, company: c, email: e, role: r };
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const password2 = document.getElementById('password2').value;
+            const fullname = document.getElementById('fullname').value.trim();
+            const company = document.getElementById('company').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const role = document.getElementById('role').value;
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+            error.style.display = 'none';
+            success.style.display = 'none';
+
+            if (!username || !password || !password2 || !fullname || !company || !email) {
+                error.textContent = 'Заполните все поля';
+                error.style.display = 'block';
+                return;
+            }
+
+            if (username.length < 10 || username.length > 12) {
+                error.textContent = 'ИНН должен содержать 10 или 12 цифр';
+                error.style.display = 'block';
+                return;
+            }
+
+            if (password.length < 4) {
+                error.textContent = 'Пароль должен быть не менее 4 символов';
+                error.style.display = 'block';
+                return;
+            }
+
+            if (password !== password2) {
+                error.textContent = 'Пароли не совпадают';
+                error.style.display = 'block';
+                return;
+            }
+
+            if (users[username]) {
+                error.textContent = 'Пользователь с таким ИНН уже существует';
+                error.style.display = 'block';
+                return;
+            }
+
+            users[username] = {
+                password: password,
+                fullname: fullname,
+                company: company,
+                email: email,
+                role: role
+            };
             localStorage.setItem('users', JSON.stringify(users));
-            suc.style.display = 'block';
-            document.getElementById('username').value = ''; document.getElementById('password').value = ''; document.getElementById('password2').value = ''; document.getElementById('fullname').value = ''; document.getElementById('company').value = ''; document.getElementById('email').value = '';
-            setTimeout(() => { if (isRegisterMode) toggleForm(); suc.style.display = 'none'; }, 1500);
+            success.style.display = 'block';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('password2').value = '';
+            document.getElementById('fullname').value = '';
+            document.getElementById('company').value = '';
+            document.getElementById('email').value = '';
+
+            setTimeout(() => {
+                if (isRegisterMode) toggleForm();
+                success.style.display = 'none';
+            }, 1500);
         }
 
-        // Автоматический вход, если уже залогинены
         if (localStorage.getItem('loggedIn') === 'true') {
             window.location.href = '/run_aurora_direct';
         }
